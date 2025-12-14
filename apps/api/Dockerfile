@@ -3,12 +3,12 @@ FROM oven/bun:1 AS build
 WORKDIR /app
 
 # Cache packages
-COPY package.json bun.lock ./
+COPY package.json bun.lock tsconfig.base.json tsconfig.json ./
 
 COPY /apps/api/package.json ./apps/api/package.json
 COPY /packages/common/package.json ./packages/common/package.json
 
-RUN bun install
+RUN bun install --frozen-lockfile
 
 COPY /apps/api ./apps/api
 COPY /packages/common ./packages/common
@@ -16,7 +16,7 @@ RUN cd packages/common && bun install && bun run build
 
 ENV NODE_ENV=production
 
-RUN cd apps/api && bun install && bun build \
+RUN cd apps/api && bun build \
 	--compile \
 	--minify-whitespace \
 	--minify-syntax \

@@ -5,7 +5,7 @@
     "outDir": "dist",
     "rootDir": "src",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
-
+    "types": ["bun-types"],
     "paths": {
       "@/*": ["src/*"]
     }

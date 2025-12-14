@@ -1,3 +1,2 @@
+export * from "./interfaces";
 
-
-export const hello = "Hello from common via package";
