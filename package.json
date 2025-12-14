@@ -1,0 +1,22 @@
+{
+  "name": "ecom",
+  "type": "module",
+  "private": true,
+   "scripts": {
+    "build": "tsc",
+    "start": "bun index.ts"
+  },
+  "workspaces": [
+    "packages/*",
+    "services/*",
+    "apps/*"
+  ],
+  "devDependencies": {
+    "@types/bun": "latest",
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+ 
+}

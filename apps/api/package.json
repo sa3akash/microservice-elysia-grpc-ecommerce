@@ -1,0 +1,17 @@
+{
+  "name": "api",
+  "version": "1.0.50",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rm -rf dist && tsc -p tsconfig.json",
+    "dev": "bun run --watch src/index.ts"
+  },
+  "dependencies": {
+    "@ecom/common": "workspace:*",
+    "elysia": "latest"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "module": "src/index.js"
+}
