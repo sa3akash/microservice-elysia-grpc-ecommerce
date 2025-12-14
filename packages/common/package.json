@@ -14,5 +14,8 @@
   "peerDependencies": {
     "typescript": "^5",
     "bun-types": "latest"
+  },
+  "dependencies": {
+    "@grpc/proto-loader": "^0.8.0"
   }
 }

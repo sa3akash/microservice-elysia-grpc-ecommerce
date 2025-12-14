@@ -1,0 +1,14 @@
+class Dotenv {
+  public PORT: string = process.env["PORT"] || "3000";
+
+  public static load() {
+    for (const [key, value] of Object.entries(this)) {
+      if (value === undefined || value === null) {
+        console.error(`${key} env is not defined.`, { service: "config" });
+        process.exit(1);
+      }
+    }
+  }
+}
+
+export const config: Dotenv = new Dotenv();
