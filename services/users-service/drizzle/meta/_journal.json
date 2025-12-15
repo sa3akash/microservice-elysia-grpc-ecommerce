@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1765746559942,
+      "tag": "0000_volatile_dragon_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1765746973832,
+      "tag": "0001_flashy_the_renegades",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1765750402211,
+      "tag": "0002_mute_bedlam",
+      "breakpoints": true
+    }
+  ]
+}

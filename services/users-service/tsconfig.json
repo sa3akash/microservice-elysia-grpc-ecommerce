@@ -6,6 +6,7 @@
     "rootDir": "src",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
     "types": ["bun-types"],
+    "exactOptionalPropertyTypes": true,
     "paths": {
       "@/*": ["src/*"]
     }

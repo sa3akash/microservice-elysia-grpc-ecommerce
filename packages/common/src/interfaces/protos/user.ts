@@ -25,10 +25,22 @@ export interface GetUserRequest {
   id: string;
 }
 
+export interface GetUsersRequest {
+  limit: number;
+  offset: number;
+  role: string;
+}
+
+export interface GetUsersResponse {
+  users: User[];
+  total: number;
+}
+
 export interface CreateUserRequest {
   name: string;
   email: string;
   password: string;
+  phone: string;
 }
 
 export interface UpdateUserRequest {
@@ -36,6 +48,14 @@ export interface UpdateUserRequest {
   name: string;
   email: string;
   password: string;
+  phone: string;
+  avatar: string;
+  preferences: { [key: string]: string };
+}
+
+export interface UpdateUserRequest_PreferencesEntry {
+  key: string;
+  value: string;
 }
 
 export interface DeleteUserRequest {
@@ -47,6 +67,19 @@ export interface User {
   name: string;
   email: string;
   password: string;
+  phone: string;
+  avatar: string;
+  isVerified: boolean;
+  isActive: boolean;
+  role: string;
+  preferences: { [key: string]: string };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface User_PreferencesEntry {
+  key: string;
+  value: string;
 }
 
 function createBaseGetUserRequest(): GetUserRequest {
@@ -107,8 +140,176 @@ export const GetUserRequest: MessageFns<GetUserRequest> = {
   },
 };
 
+function createBaseGetUsersRequest(): GetUsersRequest {
+  return { limit: 0, offset: 0, role: "" };
+}
+
+export const GetUsersRequest: MessageFns<GetUsersRequest> = {
+  encode(message: GetUsersRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.limit !== 0) {
+      writer.uint32(8).int32(message.limit);
+    }
+    if (message.offset !== 0) {
+      writer.uint32(16).int32(message.offset);
+    }
+    if (message.role !== "") {
+      writer.uint32(26).string(message.role);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetUsersRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetUsersRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.limit = reader.int32();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.offset = reader.int32();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.role = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetUsersRequest {
+    return {
+      limit: isSet(object.limit) ? globalThis.Number(object.limit) : 0,
+      offset: isSet(object.offset) ? globalThis.Number(object.offset) : 0,
+      role: isSet(object.role) ? globalThis.String(object.role) : "",
+    };
+  },
+
+  toJSON(message: GetUsersRequest): unknown {
+    const obj: any = {};
+    if (message.limit !== 0) {
+      obj.limit = Math.round(message.limit);
+    }
+    if (message.offset !== 0) {
+      obj.offset = Math.round(message.offset);
+    }
+    if (message.role !== "") {
+      obj.role = message.role;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetUsersRequest>, I>>(base?: I): GetUsersRequest {
+    return GetUsersRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetUsersRequest>, I>>(object: I): GetUsersRequest {
+    const message = createBaseGetUsersRequest();
+    message.limit = object.limit ?? 0;
+    message.offset = object.offset ?? 0;
+    message.role = object.role ?? "";
+    return message;
+  },
+};
+
+function createBaseGetUsersResponse(): GetUsersResponse {
+  return { users: [], total: 0 };
+}
+
+export const GetUsersResponse: MessageFns<GetUsersResponse> = {
+  encode(message: GetUsersResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.users) {
+      User.encode(v!, writer.uint32(10).fork()).join();
+    }
+    if (message.total !== 0) {
+      writer.uint32(16).int32(message.total);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetUsersResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetUsersResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.users.push(User.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.total = reader.int32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetUsersResponse {
+    return {
+      users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
+      total: isSet(object.total) ? globalThis.Number(object.total) : 0,
+    };
+  },
+
+  toJSON(message: GetUsersResponse): unknown {
+    const obj: any = {};
+    if (message.users?.length) {
+      obj.users = message.users.map((e) => User.toJSON(e));
+    }
+    if (message.total !== 0) {
+      obj.total = Math.round(message.total);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetUsersResponse>, I>>(base?: I): GetUsersResponse {
+    return GetUsersResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetUsersResponse>, I>>(object: I): GetUsersResponse {
+    const message = createBaseGetUsersResponse();
+    message.users = object.users?.map((e) => User.fromPartial(e)) || [];
+    message.total = object.total ?? 0;
+    return message;
+  },
+};
+
 function createBaseCreateUserRequest(): CreateUserRequest {
-  return { name: "", email: "", password: "" };
+  return { name: "", email: "", password: "", phone: "" };
 }
 
 export const CreateUserRequest: MessageFns<CreateUserRequest> = {
@@ -121,6 +322,9 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
     }
     if (message.password !== "") {
       writer.uint32(26).string(message.password);
+    }
+    if (message.phone !== "") {
+      writer.uint32(34).string(message.phone);
     }
     return writer;
   },
@@ -156,6 +360,14 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
           message.password = reader.string();
           continue;
         }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.phone = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -170,6 +382,7 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       password: isSet(object.password) ? globalThis.String(object.password) : "",
+      phone: isSet(object.phone) ? globalThis.String(object.phone) : "",
     };
   },
 
@@ -184,6 +397,9 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
     if (message.password !== "") {
       obj.password = message.password;
     }
+    if (message.phone !== "") {
+      obj.phone = message.phone;
+    }
     return obj;
   },
 
@@ -195,12 +411,13 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
     message.name = object.name ?? "";
     message.email = object.email ?? "";
     message.password = object.password ?? "";
+    message.phone = object.phone ?? "";
     return message;
   },
 };
 
 function createBaseUpdateUserRequest(): UpdateUserRequest {
-  return { id: "", name: "", email: "", password: "" };
+  return { id: "", name: "", email: "", password: "", phone: "", avatar: "", preferences: {} };
 }
 
 export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
@@ -217,6 +434,15 @@ export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
     if (message.password !== "") {
       writer.uint32(34).string(message.password);
     }
+    if (message.phone !== "") {
+      writer.uint32(42).string(message.phone);
+    }
+    if (message.avatar !== "") {
+      writer.uint32(50).string(message.avatar);
+    }
+    Object.entries(message.preferences).forEach(([key, value]) => {
+      UpdateUserRequest_PreferencesEntry.encode({ key: key as any, value }, writer.uint32(58).fork()).join();
+    });
     return writer;
   },
 
@@ -259,6 +485,33 @@ export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
           message.password = reader.string();
           continue;
         }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.phone = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.avatar = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          const entry7 = UpdateUserRequest_PreferencesEntry.decode(reader, reader.uint32());
+          if (entry7.value !== undefined) {
+            message.preferences[entry7.key] = entry7.value;
+          }
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -274,6 +527,14 @@ export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       password: isSet(object.password) ? globalThis.String(object.password) : "",
+      phone: isSet(object.phone) ? globalThis.String(object.phone) : "",
+      avatar: isSet(object.avatar) ? globalThis.String(object.avatar) : "",
+      preferences: isObject(object.preferences)
+        ? Object.entries(object.preferences).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+          acc[key] = String(value);
+          return acc;
+        }, {})
+        : {},
     };
   },
 
@@ -291,6 +552,21 @@ export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
     if (message.password !== "") {
       obj.password = message.password;
     }
+    if (message.phone !== "") {
+      obj.phone = message.phone;
+    }
+    if (message.avatar !== "") {
+      obj.avatar = message.avatar;
+    }
+    if (message.preferences) {
+      const entries = Object.entries(message.preferences);
+      if (entries.length > 0) {
+        obj.preferences = {};
+        entries.forEach(([k, v]) => {
+          obj.preferences[k] = v;
+        });
+      }
+    }
     return obj;
   },
 
@@ -303,6 +579,97 @@ export const UpdateUserRequest: MessageFns<UpdateUserRequest> = {
     message.name = object.name ?? "";
     message.email = object.email ?? "";
     message.password = object.password ?? "";
+    message.phone = object.phone ?? "";
+    message.avatar = object.avatar ?? "";
+    message.preferences = Object.entries(object.preferences ?? {}).reduce<{ [key: string]: string }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = globalThis.String(value);
+        }
+        return acc;
+      },
+      {},
+    );
+    return message;
+  },
+};
+
+function createBaseUpdateUserRequest_PreferencesEntry(): UpdateUserRequest_PreferencesEntry {
+  return { key: "", value: "" };
+}
+
+export const UpdateUserRequest_PreferencesEntry: MessageFns<UpdateUserRequest_PreferencesEntry> = {
+  encode(message: UpdateUserRequest_PreferencesEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== "") {
+      writer.uint32(18).string(message.value);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdateUserRequest_PreferencesEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateUserRequest_PreferencesEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateUserRequest_PreferencesEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? globalThis.String(object.value) : "",
+    };
+  },
+
+  toJSON(message: UpdateUserRequest_PreferencesEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== "") {
+      obj.value = message.value;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateUserRequest_PreferencesEntry>, I>>(
+    base?: I,
+  ): UpdateUserRequest_PreferencesEntry {
+    return UpdateUserRequest_PreferencesEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UpdateUserRequest_PreferencesEntry>, I>>(
+    object: I,
+  ): UpdateUserRequest_PreferencesEntry {
+    const message = createBaseUpdateUserRequest_PreferencesEntry();
+    message.key = object.key ?? "";
+    message.value = object.value ?? "";
     return message;
   },
 };
@@ -366,7 +733,20 @@ export const DeleteUserRequest: MessageFns<DeleteUserRequest> = {
 };
 
 function createBaseUser(): User {
-  return { id: "", name: "", email: "", password: "" };
+  return {
+    id: "",
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+    avatar: "",
+    isVerified: false,
+    isActive: false,
+    role: "",
+    preferences: {},
+    createdAt: "",
+    updatedAt: "",
+  };
 }
 
 export const User: MessageFns<User> = {
@@ -382,6 +762,30 @@ export const User: MessageFns<User> = {
     }
     if (message.password !== "") {
       writer.uint32(34).string(message.password);
+    }
+    if (message.phone !== "") {
+      writer.uint32(42).string(message.phone);
+    }
+    if (message.avatar !== "") {
+      writer.uint32(50).string(message.avatar);
+    }
+    if (message.isVerified !== false) {
+      writer.uint32(56).bool(message.isVerified);
+    }
+    if (message.isActive !== false) {
+      writer.uint32(64).bool(message.isActive);
+    }
+    if (message.role !== "") {
+      writer.uint32(74).string(message.role);
+    }
+    Object.entries(message.preferences).forEach(([key, value]) => {
+      User_PreferencesEntry.encode({ key: key as any, value }, writer.uint32(82).fork()).join();
+    });
+    if (message.createdAt !== "") {
+      writer.uint32(90).string(message.createdAt);
+    }
+    if (message.updatedAt !== "") {
+      writer.uint32(98).string(message.updatedAt);
     }
     return writer;
   },
@@ -425,6 +829,73 @@ export const User: MessageFns<User> = {
           message.password = reader.string();
           continue;
         }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.phone = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.avatar = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.isVerified = reader.bool();
+          continue;
+        }
+        case 8: {
+          if (tag !== 64) {
+            break;
+          }
+
+          message.isActive = reader.bool();
+          continue;
+        }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.role = reader.string();
+          continue;
+        }
+        case 10: {
+          if (tag !== 82) {
+            break;
+          }
+
+          const entry10 = User_PreferencesEntry.decode(reader, reader.uint32());
+          if (entry10.value !== undefined) {
+            message.preferences[entry10.key] = entry10.value;
+          }
+          continue;
+        }
+        case 11: {
+          if (tag !== 90) {
+            break;
+          }
+
+          message.createdAt = reader.string();
+          continue;
+        }
+        case 12: {
+          if (tag !== 98) {
+            break;
+          }
+
+          message.updatedAt = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -440,6 +911,19 @@ export const User: MessageFns<User> = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       password: isSet(object.password) ? globalThis.String(object.password) : "",
+      phone: isSet(object.phone) ? globalThis.String(object.phone) : "",
+      avatar: isSet(object.avatar) ? globalThis.String(object.avatar) : "",
+      isVerified: isSet(object.isVerified) ? globalThis.Boolean(object.isVerified) : false,
+      isActive: isSet(object.isActive) ? globalThis.Boolean(object.isActive) : false,
+      role: isSet(object.role) ? globalThis.String(object.role) : "",
+      preferences: isObject(object.preferences)
+        ? Object.entries(object.preferences).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+          acc[key] = String(value);
+          return acc;
+        }, {})
+        : {},
+      createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
+      updatedAt: isSet(object.updatedAt) ? globalThis.String(object.updatedAt) : "",
     };
   },
 
@@ -457,6 +941,36 @@ export const User: MessageFns<User> = {
     if (message.password !== "") {
       obj.password = message.password;
     }
+    if (message.phone !== "") {
+      obj.phone = message.phone;
+    }
+    if (message.avatar !== "") {
+      obj.avatar = message.avatar;
+    }
+    if (message.isVerified !== false) {
+      obj.isVerified = message.isVerified;
+    }
+    if (message.isActive !== false) {
+      obj.isActive = message.isActive;
+    }
+    if (message.role !== "") {
+      obj.role = message.role;
+    }
+    if (message.preferences) {
+      const entries = Object.entries(message.preferences);
+      if (entries.length > 0) {
+        obj.preferences = {};
+        entries.forEach(([k, v]) => {
+          obj.preferences[k] = v;
+        });
+      }
+    }
+    if (message.createdAt !== "") {
+      obj.createdAt = message.createdAt;
+    }
+    if (message.updatedAt !== "") {
+      obj.updatedAt = message.updatedAt;
+    }
     return obj;
   },
 
@@ -469,6 +983,98 @@ export const User: MessageFns<User> = {
     message.name = object.name ?? "";
     message.email = object.email ?? "";
     message.password = object.password ?? "";
+    message.phone = object.phone ?? "";
+    message.avatar = object.avatar ?? "";
+    message.isVerified = object.isVerified ?? false;
+    message.isActive = object.isActive ?? false;
+    message.role = object.role ?? "";
+    message.preferences = Object.entries(object.preferences ?? {}).reduce<{ [key: string]: string }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = globalThis.String(value);
+        }
+        return acc;
+      },
+      {},
+    );
+    message.createdAt = object.createdAt ?? "";
+    message.updatedAt = object.updatedAt ?? "";
+    return message;
+  },
+};
+
+function createBaseUser_PreferencesEntry(): User_PreferencesEntry {
+  return { key: "", value: "" };
+}
+
+export const User_PreferencesEntry: MessageFns<User_PreferencesEntry> = {
+  encode(message: User_PreferencesEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== "") {
+      writer.uint32(18).string(message.value);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): User_PreferencesEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUser_PreferencesEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): User_PreferencesEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? globalThis.String(object.value) : "",
+    };
+  },
+
+  toJSON(message: User_PreferencesEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== "") {
+      obj.value = message.value;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<User_PreferencesEntry>, I>>(base?: I): User_PreferencesEntry {
+    return User_PreferencesEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<User_PreferencesEntry>, I>>(object: I): User_PreferencesEntry {
+    const message = createBaseUser_PreferencesEntry();
+    message.key = object.key ?? "";
+    message.value = object.value ?? "";
     return message;
   },
 };
@@ -483,6 +1089,15 @@ export const UserServiceService = {
     requestDeserialize: (value: Buffer): GetUserRequest => GetUserRequest.decode(value),
     responseSerialize: (value: User): Buffer => Buffer.from(User.encode(value).finish()),
     responseDeserialize: (value: Buffer): User => User.decode(value),
+  },
+  getUsers: {
+    path: "/user.UserService/GetUsers",
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: (value: GetUsersRequest): Buffer => Buffer.from(GetUsersRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): GetUsersRequest => GetUsersRequest.decode(value),
+    responseSerialize: (value: GetUsersResponse): Buffer => Buffer.from(GetUsersResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): GetUsersResponse => GetUsersResponse.decode(value),
   },
   createUser: {
     path: "/user.UserService/CreateUser",
@@ -515,6 +1130,7 @@ export const UserServiceService = {
 
 export interface UserServiceServer extends UntypedServiceImplementation {
   getUser: handleUnaryCall<GetUserRequest, User>;
+  getUsers: handleUnaryCall<GetUsersRequest, GetUsersResponse>;
   createUser: handleUnaryCall<CreateUserRequest, User>;
   updateUser: handleUnaryCall<UpdateUserRequest, User>;
   deleteUser: handleUnaryCall<DeleteUserRequest, User>;
@@ -532,6 +1148,21 @@ export interface UserServiceClient extends Client {
     metadata: Metadata,
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: User) => void,
+  ): ClientUnaryCall;
+  getUsers(
+    request: GetUsersRequest,
+    callback: (error: ServiceError | null, response: GetUsersResponse) => void,
+  ): ClientUnaryCall;
+  getUsers(
+    request: GetUsersRequest,
+    metadata: Metadata,
+    callback: (error: ServiceError | null, response: GetUsersResponse) => void,
+  ): ClientUnaryCall;
+  getUsers(
+    request: GetUsersRequest,
+    metadata: Metadata,
+    options: Partial<CallOptions>,
+    callback: (error: ServiceError | null, response: GetUsersResponse) => void,
   ): ClientUnaryCall;
   createUser(
     request: CreateUserRequest,
@@ -597,6 +1228,10 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isObject(value: any): boolean {
+  return typeof value === "object" && value !== null;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

@@ -5,8 +5,16 @@ import { apollo } from "@elysiajs/apollo";
 import { cors } from "@elysiajs/cors";
 import { modules } from "./modules/module";
 import { config } from "./config/dotenv";
+import { MyError } from "./utils/customError";
 
 const app = new Elysia()
+  .error({ MyError })
+  .onError(({ error, status }) => {
+    if (error instanceof MyError) {
+      return status(error.code, error.message);
+    }
+    return error;
+  })
   .use(cors())
   .use(
     apollo({

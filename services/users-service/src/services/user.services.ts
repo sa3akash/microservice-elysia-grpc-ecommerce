@@ -1,14 +1,21 @@
+import { UserErrors } from "@/errors/user.errors";
+import { handleGrpcError } from "@/grpc/grpc-handler";
+import { UserRepository } from "@/repository/user.repository";
+import type { UserRole } from "@/utils/schema";
 import type {
   GetUserRequest,
-  CreateUserRequest,
   UpdateUserRequest,
   DeleteUserRequest,
   User,
   UserServiceServer,
+  CreateUserRequest,
+  GetUsersRequest,
+  GetUsersResponse,
 } from "@ecom/common";
 import {
   Metadata,
   status,
+  type handleUnaryCall,
   type sendUnaryData,
   type ServerUnaryCall,
   type ServiceError,
@@ -16,77 +23,138 @@ import {
 
 export class UsersService implements UserServiceServer {
   [name: string]: any;
-  getUser(
+
+  async getUser(
     call: ServerUnaryCall<GetUserRequest, User>,
     callback: sendUnaryData<User>
   ) {
-    const userId = call.request.id;
-    const user = {
-      id: userId,
-      name: "shakil",
-      email: "shakil@gmail.com",
-      password: "123456",
-    };
+    try {
+      const { id } = call.request;
 
-    if (!user) {
-      const error: ServiceError = {
-        name: "User Missing",
-        message: `User with ID ${userId} does not exist.`,
-        code: status.NOT_FOUND,
-        metadata: new Metadata(),
-        details: `User with ID ${userId} does not exist.`,
-      };
-      callback(error, null);
-      return;
+      if (!id) {
+        throw UserErrors.invalidArgument("User ID is required");
+      }
+
+      const user = (await UserRepository.getUserById(id)) as unknown as User;
+      if (!user) {
+        throw UserErrors.notFound(id);
+      }
+
+      callback(null, user);
+    } catch (error) {
+      handleGrpcError(error, callback);
     }
-
-    console.log(`getUser: returning ${user.name} (id: ${user.id}).`);
-    callback(null, user);
   }
 
-  createUser(
-    call: ServerUnaryCall<CreateUserRequest, User>,
-    callback: sendUnaryData<User>
-  ) {
-    const { name, email, password } = call.request;
-    const user: User = {
-      id: "generated-id",
-      name,
-      email,
-      password,
-    };
-    console.log(`createUser: created ${user.name}`);
-    callback(null, user);
-  }
+  createUser: handleUnaryCall<CreateUserRequest, User> = async (
+    call,
+    callback
+  ) => {
+    try {
+      const { name, email, password, phone } = call.request;
 
-  updateUser(
-    call: ServerUnaryCall<UpdateUserRequest, User>,
-    callback: sendUnaryData<User>
-  ) {
-    const { id, name, email, password } = call.request;
-    const user: User = {
-      id,
-      name,
-      email,
-      password,
-    };
-    console.log(`updateUser: updated ${user.name} (id: ${user.id})`);
-    callback(null, user);
-  }
+      if (!name || !email || !password || !phone) {
+        throw UserErrors.invalidArgument("All fields are required");
+      }
 
-  deleteUser(
-    call: ServerUnaryCall<DeleteUserRequest, User>,
-    callback: sendUnaryData<User>
-  ) {
-    const { id } = call.request;
-    // Mock deletion
-    const user: User = {
-      id,
-      name: "Deleted User",
-      email: "deleted@example.com",
-      password: "",
-    };
-    console.log(`deleteUser: deleted user (id: ${id})`);
-    callback(null, user);
-  }
+      if (await UserRepository.getUserByEmail(email)) {
+        throw UserErrors.alreadyExists(email);
+      }
+
+      const user = await UserRepository.createUser({
+        name,
+        email,
+        password,
+        phone,
+      }) as unknown as User;
+
+      callback(null, user);
+    } catch (error) {
+      handleGrpcError(error, callback);
+    }
+  };
+
+  updateUser: handleUnaryCall<UpdateUserRequest, User> = async (
+    call,
+    callback
+  ) => {
+    try {
+      const { id, name, email, password, avatar, phone, preferences } =
+        call.request;
+
+      if (!id) {
+        throw UserErrors.invalidArgument("All fields are required");
+
+      }
+
+      const existingUser = await UserRepository.getUserById(id);
+      if (!existingUser) {
+        throw UserErrors.notFound(id);
+      }
+
+      if (email && email !== existingUser.email) {
+        const emailCheck = await UserRepository.getUserByEmail(email);
+        if (emailCheck) {
+          throw UserErrors.alreadyExists(email);
+        }
+      }
+
+      const updatedUser = await UserRepository.updateUser(id, {
+        name,
+        email,
+        password,
+        avatar,
+        phone,
+        preferences,
+      }) as unknown as User;
+
+      if (!updatedUser) {
+        throw UserErrors.internal();
+      }
+
+      callback(null, updatedUser);
+    } catch (error) {
+      handleGrpcError(error, callback);
+    }
+  };
+
+  deleteUser: handleUnaryCall<DeleteUserRequest, User> = async (
+    call,
+    callback
+  ) => {
+    try {
+      const { id } = call.request;
+
+      if (!id) {
+        throw UserErrors.invalidArgument("User ID is required");
+      }
+
+      const existingUser = await UserRepository.getUserById(id);
+      if (!existingUser) {
+        throw UserErrors.notFound(id);
+      }
+
+      const deletedUser = await UserRepository.deleteUser(id);
+
+      callback(null, deletedUser as unknown as User);
+    } catch (error) {
+      handleGrpcError(error, callback);
+    }
+  };
+
+  getUsers: handleUnaryCall<GetUsersRequest, GetUsersResponse> = async (
+    call,
+    callback
+  ) => {
+    try {
+      const users = await UserRepository.getUsers(
+        call.request.limit || 10,
+        call.request.offset || 0,
+        call.request.role as UserRole
+      );
+      callback(null, users as unknown as GetUsersResponse);
+    } catch (error) {
+      handleGrpcError(error, callback);
+    }
+  };
 }

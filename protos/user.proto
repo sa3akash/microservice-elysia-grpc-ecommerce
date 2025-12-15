@@ -4,6 +4,7 @@ package user;
 
 service UserService {
     rpc GetUser (GetUserRequest) returns (User);
+    rpc GetUsers (GetUsersRequest) returns (GetUsersResponse);
     rpc CreateUser (CreateUserRequest) returns (User);
     rpc UpdateUser (UpdateUserRequest) returns (User);
     rpc DeleteUser (DeleteUserRequest) returns (User);
@@ -13,10 +14,22 @@ message GetUserRequest {
     string id = 1;
 }
 
+message GetUsersRequest {
+    int32 limit = 1;
+    int32 offset = 2;
+    string role = 3;
+}
+
+message GetUsersResponse {
+    repeated User users = 1;
+    int32 total = 2;
+}
+
 message CreateUserRequest {
     string name = 1;
     string email = 2;
     string password = 3;
+    string phone = 4;
 }
 
 message UpdateUserRequest {
@@ -24,6 +37,10 @@ message UpdateUserRequest {
     string name = 2;
     string email = 3;
     string password = 4;
+    string phone = 5;
+    string avatar = 6;
+    map<string, string> preferences = 7;
+
 }
 
 message DeleteUserRequest {
@@ -35,4 +52,12 @@ message User {
     string name = 2;
     string email = 3;
     string password = 4;
+    string phone = 5;
+    string avatar = 6;
+    bool isVerified = 7;
+    bool isActive = 8;
+    string role = 9;
+    map<string, string> preferences = 10;
+    string createdAt = 11;
+    string updatedAt = 12;
 }
