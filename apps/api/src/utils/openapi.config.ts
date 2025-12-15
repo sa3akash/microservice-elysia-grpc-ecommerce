@@ -2,7 +2,7 @@ import { config } from "@/config/dotenv";
 import openapi from "@elysiajs/openapi";
 import Elysia from "elysia";
 
-const url = `http://localhost:${config.PORT}`;
+const url = `http://localhost:${config.GATEWAY_PORT}`;
 
 export const openapiMiddleware = new Elysia().use(
   openapi({

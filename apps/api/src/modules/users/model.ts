@@ -2,27 +2,42 @@ import { t } from "elysia";
 
 export namespace UserModel {
   export const signInBody = t.Object({
-    email: t.String(),
+    email: t.String({
+      format: "email",
+      required: true,
+      error: "Invalid email",
+      examples: ["test@example.com"],
+    }),
     password: t.String(),
   });
 
   export const signUpBody = t.Object({
     name: t.String(),
-    email: t.String(),
+    email: t.String({
+      format: "email",
+      required: true,
+      error: "Invalid email",
+      examples: ["test@example.com"],
+    }),
     password: t.String(),
     phone: t.String(),
   });
 
   export const updateUserBody = t.Object({
     name: t.String(),
-    email: t.String(),
+    email: t.String({
+      format: "email",
+      required: true,
+      error: "Invalid email",
+      examples: ["test@example.com"],
+    }),
     password: t.String(),
     phone: t.String(),
     avatar: t.String(),
     preferences: t.Object({}),
   });
 
-  export const deleteUserBody = t.Object({
+  export const deleteUserParams = t.Object({
     id: t.String(),
   });
 
@@ -59,15 +74,17 @@ export namespace UserModel {
     total: t.Number(),
   });
 
-  export type signInResponseType = typeof signInBody.static;
-  export type signUpRequestType = typeof signUpBody.static;
+  export type SignInResponseType = typeof signInBody.static;
+  export type SignUpRequestType = typeof signUpBody.static;
   export type updateUserResponseType = typeof updateUserBody.static;
   export type updateUserRequestType = typeof updateUserBody.static;
-  export type deleteUserResponseType = typeof deleteUserBody.static;
+  export type deleteUserResponseType = typeof deleteUserParams.static;
   export type getUsersResponseType = typeof getUsersParams.static;
   export type getUserResponseType = typeof getUserParams.static;
   export type signInInvalidType = typeof signInInvalid.static;
   export type signUpInvalidType = typeof signUpInvalid.static;
+
+  export type UserResponseType = typeof UserResponse.static;
 
   export const signInInvalid = t.Literal("Invalid username or password");
   export type signInInvalid = typeof signInInvalid.static;

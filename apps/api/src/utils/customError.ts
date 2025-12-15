@@ -1,3 +1,5 @@
+import type { Context } from "elysia";
+
 // 1. Map gRPC Status Codes to HTTP Status Codes
 export const grpcToHttpStatus: Record<number, number> = {
   0: 200, // OK
@@ -19,54 +21,87 @@ export const grpcToHttpStatus: Record<number, number> = {
   16: 401, // UNAUTHENTICATED
 };
 
-export class MyError extends Error {
-  constructor(public override message: string, public code: number = 500) {
+export class GatewayError extends Error {
+  constructor(
+    message: string,
+    public status = 500,
+    public code = "GATEWAY_ERROR"
+  ) {
     super(message);
-    Object.setPrototypeOf(this, MyError.prototype);
   }
 }
 
-// The handler function to be used in .onError()
-export const errorHandler = ({ code, error, set }: any) => {
-  // 1. Handle Custom Logic Error (MyError)
-  if (error instanceof MyError) {
-    set.status = error.code;
+
+export const errorHandler = ({
+  code,
+  error,
+  set,
+}: {
+  code: any;
+  error: any;
+  set: Context["set"];
+}) => {
+  
+  // ---------- App Error ----------
+  if (error instanceof GatewayError) {
+    set.status = error.status;
     return {
       success: false,
       message: error.message,
-      errorCode: error.code || code,
+      code: error.code,
     };
-  }
+  }  
+  
 
-  // 2. Handle gRPC Errors
-  // Checks if it has a numeric 'code' (standard in grpc-js)
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    typeof (error as any).code === "number"
-  ) {
-    const grpcCode = (error as any).code;
-    const httpStatus = grpcToHttpStatus[grpcCode] || 500;
+  
+  /* ---------------- GraphQL ---------------- */
 
-    set.status = httpStatus;
 
-    const message = error.metadata.get("message")?.[0] as string;
-
+  // ---------- Validation ----------
+  if (code === "VALIDATION") {
+    set.status = 400;
     return {
       success: false,
-      message: message || error.message || "RPC Error",
-      errorCode: "GRPC_ERROR",
-      grpcStatus: grpcCode,
+      message: error.message ?? "Validation failed",
+      code: "VALIDATION_ERROR",
     };
   }
 
-  // 3. Handle Standard/Unknown Errors
+  // Format the GraphQL error the way you like
+  if (code === "INTERNAL_SERVER_ERROR") {
+    set.status = 200;
+    return {
+      errors: [{ message: error.message, extensions: { code: "INTERNAL" } }],
+      data: null,
+    };
+  }
+
+  // ---------- gRPC ----------
+  if (typeof (error as any)?.code === "number") {
+    const grpcCode = (error as any).code;
+    set.status = grpcToHttpStatus[grpcCode] ?? 500;
+    return grpcError(error);
+  }
+
+  // ---------- Unknown ----------
   set.status = 500;
   return {
     success: false,
-    message: error.message ?? "Internal Server Error",
-    errorCode: "INTERNAL_SERVER_ERROR",
-    details: null,
+    message: error?.message ?? "Internal Server Error",
+    code: "INTERNAL_ERROR",
+  };
+};
+
+const grpcError = (error: any) => {
+  const grpcCode = error?.code;
+  const message =
+    grpcCode === 14
+      ? "Service Unavailable. Please try again later."
+      : error.metadata?.get("message")?.[0] ?? error.message ?? "RPC Error";
+
+  return {
+    success: false,
+    message: message,
+    code: grpcCode === 14 ? "SERVICE_UNAVAILABLE" : "GRPC_ERROR",
   };
 };

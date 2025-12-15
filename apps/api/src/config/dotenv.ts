@@ -1,7 +1,8 @@
 import { logger } from "@/utils/logger";
 
 class Dotenv {
-  public PORT: string = process.env["PORT"] || "3000";
+  public GATEWAY_PORT: string = process.env["GATEWAY_PORT"] || "3000";
+  public USERS_SERVICE_PORT: string = process.env["USERS_SERVICE_PORT"] || "50051";
 
   public static load() {
     for (const [key, value] of Object.entries(this)) {

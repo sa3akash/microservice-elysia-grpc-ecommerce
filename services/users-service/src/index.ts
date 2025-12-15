@@ -9,6 +9,7 @@ import { Server, ServerCredentials } from "@grpc/grpc-js";
 import { config } from "./config/dotenv";
 import { UsersService } from "./services/user.services";
 import { logger } from "./utils/logger";
+import { closeDb } from "./config/db";
 
 const server = new Server();
 
@@ -36,21 +37,18 @@ server.bindAsync(
 
 // =========== Process Events ===========
 
-process.on("SIGINT", () => {
+const closeServr = () => {
   logger.info("Users Service shutting down");
   server.tryShutdown(() => {
     logger.info("Users Service shutdown");
+    closeDb();
     process.exit(0);
   });
-});
+};
 
-process.on("SIGTERM", () => {
-  logger.info("Users Service shutting down");
-  server.tryShutdown(() => {
-    logger.info("Users Service shutdown");
-    process.exit(0);
-  });
-});
+process.on("SIGINT", closeServr);
+
+process.on("SIGTERM", closeServr);
 
 process.on("exit", () => {
   logger.info("Users Service exiting");

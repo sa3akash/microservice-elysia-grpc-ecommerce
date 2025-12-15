@@ -1,15 +1,15 @@
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
-import { modules } from "./modules/module";
+import { restModules } from "./modules/restModule";
 import { config } from "./config/dotenv";
-import { errorHandler, MyError } from "./utils/customError";
+import { errorHandler, GatewayError } from "./utils/customError";
 import { logger } from "./utils/logger";
+import { apolloModules } from "./modules/apolloModule";
 
 const app = new Elysia()
-  .error({ MyError })
+  .error({ GatewayError })
   .onError(errorHandler)
-  .use([cors(), modules])
-
+  .use([cors(), restModules, apolloModules])
   .get("/", ({ redirect }) => {
     return redirect("/openapi");
   })
@@ -20,13 +20,18 @@ const app = new Elysia()
       pid: process.pid,
     };
   })
-  .listen(config.PORT);
+  .listen(config.GATEWAY_PORT);
 
 logger.info(
   `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
 );
 
 process.on("SIGINT", () => {
+  logger.warn("\nShutting down gracefully...");
+  process.exit(0);
+});
+
+process.on("SIGTERM", () => {
   logger.warn("\nShutting down gracefully...");
   process.exit(0);
 });

@@ -5,7 +5,7 @@ import type {
   GrpcCall,
   GrpcCallback,
   GrpcHandler,
-} from "./server-utils";
+} from "../server-utils";
 import { AppError } from "..";
 
 export class ErrorInterceptor implements GrpcServerInterceptor {
@@ -18,9 +18,10 @@ export class ErrorInterceptor implements GrpcServerInterceptor {
     try {
       await next(call, callback);
     } catch (err: any) {
-      logger.error(`[ErrorInterceptor] Uncaught exception: ${err.message}`, {
-        stack: err.stack,
-      });
+      logger.error(
+        `[ErrorInterceptor] Uncaught exception: ${err.message}`,
+        process.env["NODE_ENV"] === "development" ? { stack: err.stack } : {}
+      );
 
       if (err instanceof AppError) {
         return callback(err.toServiceError(), null);

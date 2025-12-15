@@ -1,6 +1,6 @@
 import { status } from "@grpc/grpc-js";
 import { AppError } from "..";
-import type { GrpcServerInterceptor, GrpcCall, GrpcCallback, GrpcHandler } from "./server-utils";
+import type { GrpcServerInterceptor, GrpcCall, GrpcCallback, GrpcHandler } from "../server-utils";
 
 export class InternalInterceptor implements GrpcServerInterceptor {
   private readonly requiredApiKey = "gateway";

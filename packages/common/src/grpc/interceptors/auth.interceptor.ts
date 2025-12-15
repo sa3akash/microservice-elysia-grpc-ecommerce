@@ -7,7 +7,7 @@ import type {
   GrpcCallback,
   GrpcHandler,
   GrpcContext,
-} from "./server-utils";
+} from "../server-utils";
 
 export class AuthInterceptor implements GrpcServerInterceptor {
   private validApiKeys: Set<string> = new Set(["gateway"]);

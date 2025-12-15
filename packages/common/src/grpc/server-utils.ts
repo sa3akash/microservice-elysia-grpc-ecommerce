@@ -4,7 +4,7 @@ import {
   type UntypedServiceImplementation,
   status,
 } from "@grpc/grpc-js";
-import { AppError } from "..";
+import { AppError } from ".";
 
 export type GrpcCall = ServerUnaryCall<any, any>;
 export type GrpcCallback = sendUnaryData<any>;

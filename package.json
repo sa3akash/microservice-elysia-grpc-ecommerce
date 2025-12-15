@@ -5,7 +5,6 @@
   "scripts": {
     "build": "bun --filter '*' build",
     "generate": "bunx protoc --ts_proto_out=./packages/common/src/interfaces/ ./protos/*.proto --ts_proto_opt=grpcJs=true",
-    "g": "bunx protoc --ts_proto_out=./packages/common/src/interfaces ./protos/user.proto --ts_proto_opt=grpcJs=true --ts_proto_opt=outputServices=grpc-js --ts_proto_opt=esModuleInterop=true",
     "start": "bun index.ts"
   },
   "workspaces": [

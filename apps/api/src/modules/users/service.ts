@@ -27,7 +27,7 @@ export abstract class UserService {
     });
   }
 
-  static async createUser(body: UserModel.signUpRequestType, context: ServiceContext = {}): Promise<User> {
+  static async createUser(body: UserModel.SignUpRequestType, context: ServiceContext = {}): Promise<User> {
     return new Promise((resolve, reject) => {
       const request: CreateUserRequest = {
         name: body.name,

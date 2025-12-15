@@ -1,11 +1,10 @@
 import { UserServiceClient } from "@ecom/common";
 import * as grpc from "@grpc/grpc-js";
 import { gatewayInterceptor } from "./gateway.interceptor";
-
-const port = 50051;
+import { config } from "@/config/dotenv";
 
 export const userClient = new UserServiceClient(
-  `localhost:${port}`,
+  `localhost:${config.USERS_SERVICE_PORT}`,
   grpc.credentials.createInsecure(),
   {
     interceptors: [gatewayInterceptor],

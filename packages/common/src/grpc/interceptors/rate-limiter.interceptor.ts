@@ -1,7 +1,7 @@
 import { status } from "@grpc/grpc-js";
 import Redis from "ioredis";
 import { logger } from "../../utils";
-import type { GrpcServerInterceptor, GrpcCall, GrpcCallback, GrpcHandler } from "./server-utils";
+import type { GrpcServerInterceptor, GrpcCall, GrpcCallback, GrpcHandler } from "../server-utils";
 
 export class RateLimiterInterceptor implements GrpcServerInterceptor {
   private redis: Redis;

@@ -10,6 +10,10 @@ const rootTypeDefs = gql`
   type Query {
     books: [Book]
   }
+
+  type Mutation {
+    _empty: String
+  }
 `;
 
 export const typeDefs = [rootTypeDefs, userTypeDefs];

@@ -12,5 +12,7 @@ export const resolvers = {
     },
     ...userResolvers.Query,
   },
-  
+  Mutation: {
+    ...userResolvers.Mutation,
+  },
 };
