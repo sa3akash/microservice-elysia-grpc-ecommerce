@@ -62,6 +62,7 @@ export namespace UserModel {
   export type signInResponseType = typeof signInBody.static;
   export type signUpRequestType = typeof signUpBody.static;
   export type updateUserResponseType = typeof updateUserBody.static;
+  export type updateUserRequestType = typeof updateUserBody.static;
   export type deleteUserResponseType = typeof deleteUserBody.static;
   export type getUsersResponseType = typeof getUsersParams.static;
   export type getUserResponseType = typeof getUserParams.static;

@@ -1,16 +1,87 @@
-import { UserServiceService } from "@ecom/common";
-import { Server, ServerCredentials } from "@grpc/grpc-js";
+import {
+  UserServiceService,
+  applyInterceptors,
+  AuthInterceptor,
+  ErrorInterceptor,
+} from "@ecom/common";
 
-import { UsersService } from "./services/user.services";
+import { Server, ServerCredentials } from "@grpc/grpc-js";
 import { config } from "./config/dotenv";
+import { UsersService } from "./services/user.services";
+import { logger } from "./utils/logger";
 
 const server = new Server();
 
-server.addService(UserServiceService, new UsersService());
+const interceptors = [
+  new ErrorInterceptor(),
+  new AuthInterceptor(["createUser", "getUser"]),
+];
+
+server.addService(
+  UserServiceService,
+  applyInterceptors(new UsersService(), interceptors)
+);
+
 server.bindAsync(
   `0.0.0.0:${config.PORT}`,
   ServerCredentials.createInsecure(),
-  () => {
-    console.log(`Server running at http://0.0.0.0:${config.PORT}`);
+  (err, port) => {
+    if (err) {
+      logger.error("Failed to bind server", { error: err });
+      process.exit(1);
+    }
+    logger.info(`Users Service running on port ${port}`);
   }
 );
+
+// =========== Process Events ===========
+
+process.on("SIGINT", () => {
+  logger.info("Users Service shutting down");
+  server.tryShutdown(() => {
+    logger.info("Users Service shutdown");
+    process.exit(0);
+  });
+});
+
+process.on("SIGTERM", () => {
+  logger.info("Users Service shutting down");
+  server.tryShutdown(() => {
+    logger.info("Users Service shutdown");
+    process.exit(0);
+  });
+});
+
+process.on("exit", () => {
+  logger.info("Users Service exiting");
+});
+
+process.on("uncaughtException", (err) => {
+  logger.error("Uncaught Exception", { error: err });
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason) => {
+  logger.error("Unhandled Rejection", { reason });
+  process.exit(1);
+});
+
+process.on("uncaughtExceptionMonitor", (err) => {
+  logger.error("Uncaught Exception Monitor", { error: err });
+});
+
+process.on("warning", (warning) => {
+  logger.warn("Warning", { warning });
+});
+
+process.on("beforeExit", (code) => {
+  logger.info("Before Exit", { code });
+});
+
+process.on("multipleResolves", (type, promise, reason) => {
+  logger.error("Multiple Resolves", { type, promise, reason });
+});
+
+process.on("rejectionHandled", (promise) => {
+  logger.info("Rejection Handled", { promise });
+});

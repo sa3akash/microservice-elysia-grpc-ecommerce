@@ -1,28 +1,24 @@
 import { status } from "@grpc/grpc-js";
-import { GrpcError } from "@/grpc/grpc-error";
+import { AppError } from "@ecom/common";
 
-export const UserErrors = {
+export const UserError = {
   notFound: (id: string) =>
-    new GrpcError(
+    new AppError(
       status.NOT_FOUND,
       "User not found",
       `User with id ${id} does not exist`
     ),
 
   alreadyExists: (email: string) =>
-    new GrpcError(
+    new AppError(
       status.ALREADY_EXISTS,
       "User already exists",
       `User with email ${email} already exists`
     ),
 
-  invalidArgument: (message: string) =>
-    new GrpcError(status.INVALID_ARGUMENT, message),
-
-  internal: (err?: unknown) =>
-    new GrpcError(
-      status.INTERNAL,
-      "Internal server error",
-      err instanceof Error ? err.message : undefined
+  invalid: (msg: string) =>
+    new AppError(
+      status.INVALID_ARGUMENT,
+      msg
     ),
 };

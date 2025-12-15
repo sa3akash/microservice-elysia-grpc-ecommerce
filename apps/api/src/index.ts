@@ -1,27 +1,15 @@
 import { Elysia } from "elysia";
-import { typeDefs } from "./modules/typeDefs";
-import { resolvers } from "./modules/resolvers";
-import { apollo } from "@elysiajs/apollo";
 import { cors } from "@elysiajs/cors";
 import { modules } from "./modules/module";
 import { config } from "./config/dotenv";
-import { MyError } from "./utils/customError";
+import { errorHandler, MyError } from "./utils/customError";
+import { logger } from "./utils/logger";
 
 const app = new Elysia()
   .error({ MyError })
-  .onError(({ error, status }) => {
-    if (error instanceof MyError) {
-      return status(error.code, error.message);
-    }
-    return error;
-  })
-  .use(cors())
-  .use(
-    apollo({
-      typeDefs,
-      resolvers,
-    })
-  )
+  .onError(errorHandler)
+  .use([cors(), modules])
+
   .get("/", ({ redirect }) => {
     return redirect("/openapi");
   })
@@ -29,14 +17,16 @@ const app = new Elysia()
     return {
       status: "ok",
       timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      version: process.version,
       pid: process.pid,
     };
   })
-  .use(modules)
   .listen(config.PORT);
 
-console.log(
+logger.info(
   `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
 );
+
+process.on("SIGINT", () => {
+  logger.warn("\nShutting down gracefully...");
+  process.exit(0);
+});

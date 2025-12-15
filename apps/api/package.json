@@ -3,7 +3,8 @@
   "version": "1.0.50",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rm -rf dist && tsc -p tsconfig.json",
+    "build": "rm -rf dist && tsc --project tsconfig.json && tsc-alias -p tsconfig.json --resolve-full-paths",
+    "start": "bun dist/index.js",
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
