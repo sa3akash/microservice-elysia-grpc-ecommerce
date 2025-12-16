@@ -1,63 +1,77 @@
 syntax = "proto3";
 
-package user;
+package user.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 service UserService {
-    rpc GetUser (GetUserRequest) returns (User);
-    rpc GetUsers (GetUsersRequest) returns (GetUsersResponse);
-    rpc CreateUser (CreateUserRequest) returns (User);
-    rpc UpdateUser (UpdateUserRequest) returns (User);
-    rpc DeleteUser (DeleteUserRequest) returns (User);
+  rpc GetUser (GetUserRequest) returns (User);
+  rpc GetUsers (GetUsersRequest) returns (GetUsersResponse);
+  rpc CreateUser (CreateUserRequest) returns (User);
+  rpc UpdateUser (UpdateUserRequest) returns (User);
+  rpc DeleteUser (DeleteUserRequest) returns (google.protobuf.Empty);
 }
 
+/* ================= REQUESTS ================= */
+
 message GetUserRequest {
-    string id = 1;
+  string id = 1;
 }
 
 message GetUsersRequest {
-    int32 limit = 1;
-    int32 offset = 2;
-    string role = 3;
-}
-
-message GetUsersResponse {
-    repeated User users = 1;
-    int32 total = 2;
+  int32 limit = 1;
+  int32 offset = 2;
+  string role = 3;
 }
 
 message CreateUserRequest {
-    string name = 1;
-    string email = 2;
-    string password = 3;
-    string phone = 4;
+  string name = 1;
+  string email = 2;
+  string password = 3;
+  string phone = 4;
 }
 
 message UpdateUserRequest {
-    string id = 1;
-    string name = 2;
-    string email = 3;
-    string password = 4;
-    string phone = 5;
-    string avatar = 6;
-    map<string, string> preferences = 7;
+  string id = 1;
 
+  optional string name = 2;
+  optional string email = 3;
+  optional string password = 4;
+  optional string phone = 5;
+  optional string avatar = 6;
+
+  map<string, string> preferences = 7;
 }
 
 message DeleteUserRequest {
-    string id = 1;
+  string id = 1;
 }
 
+/* ================= RESPONSES ================= */
+
+message GetUsersResponse {
+  repeated User users = 1;
+  int32 total = 2;
+  bool hasNext = 3;
+}
+
+/* ================= MODELS ================= */
+
 message User {
-    string id = 1;
-    string name = 2;
-    string email = 3;
-    string password = 4;
-    string phone = 5;
-    string avatar = 6;
-    bool isVerified = 7;
-    bool isActive = 8;
-    string role = 9;
-    map<string, string> preferences = 10;
-    string createdAt = 11;
-    string updatedAt = 12;
+  string id = 1;
+  string name = 2;
+  string email = 3;
+
+  string phone = 4;
+  string avatar = 5;
+
+  bool isVerified = 6;
+  bool isActive = 7;
+
+  string role = 8;
+  map<string, string> preferences = 9;
+
+  google.protobuf.Timestamp createdAt = 10;
+  google.protobuf.Timestamp updatedAt = 11;
 }

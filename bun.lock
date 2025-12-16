@@ -8,7 +8,6 @@
         "@grpc/grpc-js": "^1.14.3",
       },
       "devDependencies": {
-        "@bufbuild/protobuf": "^2.10.2",
         "@types/bun": "latest",
         "bun-types": "latest",
         "ts-proto": "^2.8.3",
@@ -27,6 +26,7 @@
         "@elysiajs/apollo": "^1.4.0",
         "@elysiajs/cors": "^1.4.0",
         "@elysiajs/openapi": "^1.4.11",
+        "@sinclair/typebox": "^0.34.41",
         "elysia": "latest",
         "graphql": "^16.12.0",
       },

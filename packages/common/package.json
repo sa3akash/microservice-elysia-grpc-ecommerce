@@ -6,7 +6,8 @@
   "private": true,
   "scripts": {
     "build": "rm -rf dist && tsc --project tsconfig.json && tsc-alias -p tsconfig.json --resolve-full-paths",
-    "g": "bunx protoc --ts_proto_out=./src/interfaces ./src/protos/user.proto --ts_proto_opt=grpcJs=true --ts_proto_opt=outputServices=grpc-js --ts_proto_opt=esModuleInterop=true",
+    "g": "bunx protoc --ts_proto_out=./src/interfaces ./src/protos/*.proto --ts_proto_opt=grpcJs=true --ts_proto_opt=outputServices=grpc-js --ts_proto_opt=esModuleInterop=true",
+    "generate": "bunx protoc --ts_proto_out=./src/interfaces --ts_proto_opt=env=grpc-js --ts_proto_opt=outputServices=grpc-js --ts_proto_opt=esModuleInterop=true --ts_proto_opt=useOptionals=all --ts_proto_opt=useExactTypes=false ./src/protos/*.proto",
     "start": "bun dist/index.js"
   },
   "devDependencies": {

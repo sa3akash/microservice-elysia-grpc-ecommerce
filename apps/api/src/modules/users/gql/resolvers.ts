@@ -1,18 +1,20 @@
 import { UserService } from "@/modules/users/service";
-import type { UserModel } from "../model";
+import { UserModel } from "../model";
+import { validate } from "@/utils/validation";
+import { t } from "elysia";
 
-export const resolvers = {
+export const userResolvers = {
   Query: {
     user: async (_: any, { id }: { id: string }) => {
       return await UserService.getUserById(id);
     },
   },
   Mutation: {
-    createUser: async (
-      _: any,
-      { input }: { input: UserModel.SignUpRequestType }
-    ) => {
-      return await UserService.createUser(input);
-    },
+    createUser: validate(
+      t.Object({ input: UserModel.signUpBody }),
+      async (_: any, { input }: { input: UserModel.SignUpRequestType }) => {
+        return await UserService.createUser(input);
+      }
+    ),
   },
 };

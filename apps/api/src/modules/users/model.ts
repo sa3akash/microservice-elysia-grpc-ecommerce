@@ -1,6 +1,11 @@
 import { t } from "elysia";
 
 export namespace UserModel {
+  export const preferencesSchema = t.Object({
+    language: t.Optional(t.String()),
+    theme: t.Optional(t.String()),
+  });
+
   export const signInBody = t.Object({
     email: t.String({
       format: "email",
@@ -20,21 +25,22 @@ export namespace UserModel {
       examples: ["test@example.com"],
     }),
     password: t.String(),
-    phone: t.String(),
+    phone: t.Optional(t.String()),
   });
 
   export const updateUserBody = t.Object({
-    name: t.String(),
-    email: t.String({
-      format: "email",
-      required: true,
-      error: "Invalid email",
-      examples: ["test@example.com"],
-    }),
-    password: t.String(),
-    phone: t.String(),
-    avatar: t.String(),
-    preferences: t.Object({}),
+    name: t.Optional(t.String()),
+    email: t.Optional(
+      t.String({
+        format: "email",
+        error: "Invalid email",
+        examples: ["test@example.com"],
+      })
+    ),
+    password: t.Optional(t.String()),
+    phone: t.Optional(t.String()),
+    avatar: t.Optional(t.String()),
+    preferences: t.Optional(preferencesSchema),
   });
 
   export const deleteUserParams = t.Object({
@@ -42,9 +48,9 @@ export namespace UserModel {
   });
 
   export const getUsersParams = t.Object({
-    limit: t.String(),
-    offset: t.String(),
-    role: t.String(),
+    limit: t.Optional(t.String()),
+    offset: t.Optional(t.String()),
+    role: t.Optional(t.String()),
   });
 
   export const getUserParams = t.Object({
@@ -59,18 +65,18 @@ export namespace UserModel {
     id: t.String(),
     email: t.String(),
     name: t.String(),
-    phone: t.String(),
+    phone: t.Optional(t.String()),
     role: t.String(),
-    avatar: t.String(),
+    avatar: t.Optional(t.String()),
     isVerified: t.Boolean(),
     isActive: t.Boolean(),
-    preferences: t.Object({}),
+    preferences: t.Optional(preferencesSchema),
     createdAt: t.String(),
     updatedAt: t.String(),
   });
 
   export const UsersResponse = t.Object({
-    users: t.Array(UserModel.UserResponse),
+    users: t.Array(UserResponse),
     total: t.Number(),
   });
 

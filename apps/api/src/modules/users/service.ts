@@ -29,12 +29,12 @@ export abstract class UserService {
 
   static async createUser(body: UserModel.SignUpRequestType, context: ServiceContext = {}): Promise<User> {
     return new Promise((resolve, reject) => {
-      const request: CreateUserRequest = {
+      const request = {
         name: body.name,
         email: body.email,
         password: body.password,
         phone: body.phone,
-      };
+      } as CreateUserRequest;
       const metadata = new Metadata();
       // Registration typically doesn't have a token yet, but if it did (e.g. admin creating user):
       if (context.token) metadata.add("x-service-token", context.token);
@@ -55,15 +55,10 @@ export abstract class UserService {
     context: ServiceContext = {}
   ): Promise<User> {
     return new Promise((resolve, reject) => {
-      const request: UpdateUserRequest = {
+      const request = {
         id,
-        name: body.name,
-        email: body.email,
-        password: body.password,
-        avatar: body.avatar,
-        phone: body.phone,
-        preferences: body.preferences,
-      };
+        ...body
+      } as UpdateUserRequest;
       const metadata = new Metadata();
       if (context.token) metadata.add("x-service-token", context.token);
       if (context.userId) metadata.add("x-user-id", context.userId);

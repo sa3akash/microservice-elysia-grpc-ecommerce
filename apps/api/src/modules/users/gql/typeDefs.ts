@@ -6,12 +6,6 @@ export const userTypeDefs = gql`
     theme: String
   }
 
-  # enum Role {
-  #   USER
-  #   ADMIN
-  #   MODERATOR
-  # }
-
   type User {
     id: ID!
     name: String!
@@ -26,7 +20,7 @@ export const userTypeDefs = gql`
     updatedAt: String!
   }
 
-  extend type Query {
+  type Query {
     user(id: ID!): User
   }
 
@@ -37,7 +31,7 @@ export const userTypeDefs = gql`
     phone: String
   }
 
-  extend type Mutation {
+  type Mutation {
     createUser(input: SignUpRequestType): User
   }
 `;

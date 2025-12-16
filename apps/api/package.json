@@ -13,6 +13,7 @@
     "@elysiajs/apollo": "^1.4.0",
     "@elysiajs/cors": "^1.4.0",
     "@elysiajs/openapi": "^1.4.11",
+    "@sinclair/typebox": "^0.34.41",
     "elysia": "latest",
     "graphql": "^16.12.0"
   },
