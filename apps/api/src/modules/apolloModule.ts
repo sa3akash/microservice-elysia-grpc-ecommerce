@@ -3,33 +3,43 @@ import apollo from "@elysiajs/apollo";
 import { customGraphqlError } from "@/utils/customGraphqlError";
 import { userTypeDefs } from "./users/gql/typeDefs";
 import { userResolvers } from "./users/gql/resolvers";
+import { getClientIp } from "@/utils/ip";
 
-export const apolloModules = new Elysia().use([
-  apollo({
-    typeDefs: [userTypeDefs],
-    resolvers: {
-      Query: {
-        ...userResolvers.Query,
+export const apolloModules = new Elysia()
+  .derive(({ request, server }) => {
+    return {
+      ip: getClientIp(request, server),
+    };
+  })
+  .use([
+    apollo({
+      typeDefs: [userTypeDefs],
+      resolvers: {
+        Query: {
+          ...userResolvers.Query,
+        },
+        Mutation: {
+          ...userResolvers.Mutation,
+        },
       },
-      Mutation: {
-        ...userResolvers.Mutation,
+      formatError(formattedError, error: any) {
+        const customError = customGraphqlError(error);
+        return {
+          message: customError.message || formattedError.message,
+          code: customError.code || formattedError.extensions?.["code"],
+        };
       },
-    },
-    formatError(formattedError, error: any) {
-      const customError = customGraphqlError(error);
-      return {
-        message: customError.message || formattedError.message,
-        code: customError.code || formattedError.extensions?.["code"],
-      };
-    },
-    
-    context: async ({ request }) => {
-      const token = request.headers.get("Authorization");
-      console.log({token},request)
-      return {
-        token: "hello",
-      };
-    },
 
-  }),
-]);
+      context: async ({ request, ip }) => {
+        const token = request.headers.get("Authorization");
+        const origin = request.headers.get('origin')
+        if(origin !== 'http://localhost:3000'){
+          throw new Error('Unauthorized')
+        }
+        return {
+          token,
+          ip,
+        };
+      },
+    }),
+  ]);

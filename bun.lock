@@ -52,6 +52,25 @@
         "typescript": "^5",
       },
     },
+    "services/auth-service": {
+      "name": "@ecom/auth-service",
+      "dependencies": {
+        "@ecom/common": "workspace:*",
+        "@grpc/grpc-js": "^1.14.3",
+        "@grpc/proto-loader": "^0.8.0",
+        "drizzle-orm": "^0.45.1",
+        "pg": "^8.16.3",
+        "zod": "^4.2.0",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "@types/pg": "^8.16.0",
+        "drizzle-kit": "^0.31.8",
+      },
+      "peerDependencies": {
+        "typescript": "^5",
+      },
+    },
     "services/users-service": {
       "name": "@ecom/users-service",
       "dependencies": {
@@ -122,6 +141,8 @@
     "@drizzle-team/brocli": ["@drizzle-team/brocli@0.10.2", "", {}, "sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w=="],
 
     "@ecom/api": ["@ecom/api@workspace:apps/api"],
+
+    "@ecom/auth-service": ["@ecom/auth-service@workspace:services/auth-service"],
 
     "@ecom/common": ["@ecom/common@workspace:packages/common"],
 
