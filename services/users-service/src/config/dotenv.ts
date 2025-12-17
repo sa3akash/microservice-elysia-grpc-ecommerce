@@ -1,6 +1,6 @@
 class Dotenv {
   public PORT: string = process.env["PORT"] || "50051";
-  public DATABASE_URL: string = process.env["DATABASE_URL"] || "";
+  public INTERNAL_GATEWAY_VALUE: string = process.env["INTERNAL_GATEWAY_VALUE"] || "gateway";
 
   public static load() {
     for (const [key, value] of Object.entries(this)) {

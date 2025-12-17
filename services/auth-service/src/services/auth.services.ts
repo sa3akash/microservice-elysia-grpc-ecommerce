@@ -1,135 +1,33 @@
-import { UserError } from "@/errors/user.errors";
-import { UserRepository } from "@/repository/auth.repository";
-import type { UserRole } from "@/utils/schema";
-import {
-  createUserSchema,
-  deleteUserSchema,
-  getUserSchema,
-  getUsersSchema,
-  updateUserSchema,
-} from "@/utils/auth.validation";
-import {
-  type GetUserRequest,
-  type UpdateUserRequest,
-  type DeleteUserRequest,
-  type User,
-  type UserServiceServer,
-  type CreateUserRequest,
-  type GetUsersRequest,
-  type GetUsersResponse,
-  validate,
-} from "@ecom/common";
-import { type handleUnaryCall } from "@grpc/grpc-js";
+import { AuthRepository } from "@/repository/auth.repository";
+import bcrypt from "bcryptjs";
 
-export class UsersService implements UserServiceServer {
-  [name: string]: any;
+import { logger } from "@/utils/logger";
+import { AppError, type SignupRequest } from "@ecom/common";
+import { status } from "@grpc/grpc-js";
 
-  getUser: handleUnaryCall<GetUserRequest, User> = async (call, callback) => {
-    const data = validate<GetUserRequest>(getUserSchema, call.request);
+export abstract class AuthService {
+ 
+  static async SignUp(data:SignupRequest){
 
-    if (!data.id) {
-      throw UserError.invalid("User ID is required");
-    }
-    const user = (await UserRepository.getUserById(data.id)) as unknown as User;
-    if (!user) {
-      throw UserError.notFound(data.id);
+    const userExist = await AuthRepository.getUserByEmail(data.email);
+
+    
+    if (userExist) {
+      throw new AppError(status.ALREADY_EXISTS, "User already exists");
     }
 
-    callback(null, user);
-  };
+    const user = await AuthRepository.createUser({
+      ...data,
+      password: bcrypt.hashSync(data.password, 10),
+    });
 
-  createUser: handleUnaryCall<CreateUserRequest, User> = async (
-    call,
-    callback
-  ) => {
-    const data = validate<CreateUserRequest>(createUserSchema, call.request);
+    logger.info("user", user);
 
-    if (!data.name || !data.email || !data.password || !data.phone) {
-      throw UserError.invalid("All fields are required");
-    }
+    //todo: send verification email
 
-    if (await UserRepository.getUserByEmail(data.email)) {
-      throw UserError.alreadyExists(data.email);
-    }
+    //todo: rabbitmq send user created event
+    return user
+  }
 
-    const user = (await UserRepository.createUser({
-      name: data.name,
-      email: data.email,
-      password: data.password,
-      phone: data.phone,
-    })) as unknown as User;
-
-    callback(null, user);
-  };
-
-  updateUser: handleUnaryCall<UpdateUserRequest, User> = async (
-    call,
-    callback
-  ) => {
-    const data = validate<UpdateUserRequest>(updateUserSchema, call.request);
-
-    if (!data.id) {
-      throw UserError.invalid("User ID is required");
-    }
-
-    const existingUser = await UserRepository.getUserById(data.id);
-    if (!existingUser) {
-      throw UserError.notFound(data.id);
-    }
-
-    if (data.email && data.email !== existingUser.email) {
-      const emailCheck = await UserRepository.getUserByEmail(data.email);
-      if (emailCheck) {
-        throw UserError.alreadyExists(data.email);
-      }
-    }
-
-    const updatedUser = (await UserRepository.updateUser(data.id, {
-      name: data.name,
-      email: data.email,
-      password: data.password,
-      avatar: data.avatar,
-      phone: data.phone,
-      preferences: data.preferences,
-    })) as unknown as User;
-
-    if (!updatedUser) {
-      throw UserError.notFound(data.id);
-    }
-
-    callback(null, updatedUser);
-  };
-
-  deleteUser: handleUnaryCall<DeleteUserRequest, User> = async (
-    call,
-    callback
-  ) => {
-    const data = validate<DeleteUserRequest>(deleteUserSchema, call.request);
-
-    if (!data.id) {
-      throw UserError.invalid("User ID is required");
-    }
-
-    const existingUser = await UserRepository.getUserById(data.id);
-    if (!existingUser) {
-      throw UserError.notFound(data.id);
-    }
-
-    const deletedUser = await UserRepository.deleteUser(data.id);
-
-    callback(null, deletedUser as unknown as User);
-  };
-
-  getUsers: handleUnaryCall<GetUsersRequest, GetUsersResponse> = async (
-    call,
-    callback
-  ) => {
-    const data = validate<GetUsersRequest>(getUsersSchema, call.request);
-    const users = await UserRepository.getUsers(
-      data.limit || 10,
-      data.offset || 0,
-      data.role as UserRole
-    );
-    callback(null, users as unknown as GetUsersResponse);
-  };
+  
 }

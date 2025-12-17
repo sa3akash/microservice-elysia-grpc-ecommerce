@@ -1,5 +1,5 @@
-import { UserService } from "@/modules/users/service";
-import { UserModel } from "../model";
+import { UserService } from "@/modules/users/users.service";
+import { UserModel } from "../users.model";
 import { validate } from "@/utils/validation";
 import { t } from "elysia";
 

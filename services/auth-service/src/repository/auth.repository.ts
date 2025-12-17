@@ -1,75 +1,103 @@
 import { db } from "@/config/db";
-import { users, type TUser, type UserRole } from "@/utils/schema";
-import { eq } from "drizzle-orm";
+import { auth } from "@/utils/schema";
+import type { SignupRequest } from "@ecom/common";
+import { eq, or } from "drizzle-orm";
 
-export abstract class UserRepository {
+export abstract class AuthRepository {
 
   // CREATE
   static async createUser(
-    userData: Pick<TUser, "email" | "password" | 'name' | 'phone'>
+    signInData: SignupRequest
   ) {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
+    const [authData] = await db
+      .insert(auth)
+      .values(signInData)
       .returning();
 
-    return user;
+    return authData;
   }
 
-  // READ BY ID
-  static async getUserById(id: string) {
-    const [user] = await db
+  static async getUserByEmail(
+    email: string
+  ) {
+    const [authData] = await db
       .select()
-      .from(users)
-      .where(eq(users.id, id))
+      .from(auth)
+      .where(eq(auth.email, email))
       .limit(1);
 
-    return user ?? null;
+    return authData;
   }
 
-  // READ BY EMAIL
-  static async getUserByEmail(email: string) {
-    const [user] = await db
+  static async getUserByIdenfire(identifier:string){
+    const [authData] = await db
       .select()
-      .from(users)
-      .where(eq(users.email, email))
+      .from(auth)
+      .where(or(eq(auth.email, identifier), eq(auth.phone, identifier)))
       .limit(1);
 
-    return user ?? null;
+    return authData;
   }
 
-  // UPDATE
-  static async updateUser(
-    id: string,
-    updateData: Partial<TUser>
+  static async getUserById(
+    id: string
   ) {
-    const [user] = await db
-      .update(users)
-      .set(updateData)
-      .where(eq(users.id, id))
-      .returning();
-
-    return user ?? null;
-  }
-
-  // DELETE
-  static async deleteUser(id: string) {
-    const [user] = await db
-      .delete(users)
-      .where(eq(users.id, id))
-      .returning();
-
-    return user ?? null;
-  }
-
-  static async getUsers(limit: number, offset: number, role?: UserRole) {
-    const getUsers = await db
+    const [authData] = await db
       .select()
-      .from(users)
-      .where(role ? eq(users.role, role) : undefined)
-      .limit(limit)
-      .offset(offset);
+      .from(auth)
+      .where(eq(auth.id, id))
+      .limit(1);
 
-    return getUsers;
+    return authData;
   }
+
+  static async getUserByPhone(
+    phone: string
+  ) {
+    const [authData] = await db
+      .select()
+      .from(auth)
+      .where(eq(auth.phone, phone))
+      .limit(1);
+
+    return authData;
+  }
+
+  static async emailVarified(
+    email: string
+  ) {
+    const [authData] = await db
+      .update(auth)
+      .set({ emailVerified: true })
+      .where(eq(auth.email, email))
+      .returning();
+
+    return authData;
+  }
+
+  static async phoneVarified(
+    phone: string
+  ) {
+    const [authData] = await db
+      .update(auth)
+      .set({ phoneVerified: true })
+      .where(eq(auth.phone, phone))
+      .returning();
+
+    return authData;
+  }
+
+  static async changePassword(
+    email: string,
+    password: string
+  ) {
+    const [authData] = await db
+      .update(auth)
+      .set({ password })
+      .where(eq(auth.email, email))
+      .returning();
+
+    return authData;
+  }
+ 
 }

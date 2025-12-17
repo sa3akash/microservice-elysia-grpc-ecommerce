@@ -1,6 +1,6 @@
 import { userClient } from "@/clients/users.client";
 import { CreateUserRequest, GetUserRequest, User, UpdateUserRequest, DeleteUserRequest } from "@ecom/common";
-import type { UserModel } from "./model";
+import type { UserModel } from "./users.model";
 
 import { Metadata } from "@grpc/grpc-js";
 
@@ -53,7 +53,7 @@ export abstract class UserService {
     id: string,
     body: UserModel.updateUserRequestType,
     context: ServiceContext = {}
-  ): Promise<User> {
+  ) {
     return new Promise((resolve, reject) => {
       const request = {
         id,
@@ -73,7 +73,7 @@ export abstract class UserService {
     });
   }
 
-  static async deleteUser(id: string, context: ServiceContext = {}): Promise<User> {
+  static async deleteUser(id: string, context: ServiceContext = {}) {
     return new Promise((resolve, reject) => {
       const request: DeleteUserRequest = { id };
       const metadata = new Metadata();

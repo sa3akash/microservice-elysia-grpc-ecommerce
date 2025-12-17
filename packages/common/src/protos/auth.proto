@@ -1,0 +1,278 @@
+syntax = "proto3";
+
+package auth.v1;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+/* ================= SERVICE ================= */
+
+service AuthService {
+  // Public endpoints
+  rpc Login (LoginRequest) returns (LoginResponse);
+  rpc Signup (SignupRequest) returns (SignupResponse);
+  rpc RefreshToken (RefreshTokenRequest) returns (AuthTokens);
+  
+  // 2FA verification
+  rpc Verify2FA (Verify2FARequest) returns (AuthTokens);
+  
+  // Authenticated endpoints (JWT via metadata)
+  rpc Logout (google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc ChangePassword (ChangePasswordRequest) returns (google.protobuf.Empty);
+  rpc GetSession (google.protobuf.Empty) returns (SessionInfo);
+  
+  // 2FA management (authenticated)
+  rpc Enable2FA (Enable2FARequest) returns (Enable2FAResponse);
+  rpc Disable2FA (Disable2FARequest) returns (google.protobuf.Empty);
+  rpc Verify2FASetup (Verify2FASetupRequest) returns (google.protobuf.Empty);
+  
+  // Verification endpoints
+  rpc VerifyAccount (VerifyAccountRequest) returns (google.protobuf.Empty);
+  rpc ResendVerification (ResendVerificationRequest) returns (google.protobuf.Empty);
+  
+  // Password recovery
+  rpc ForgotPassword (ForgotPasswordRequest) returns (google.protobuf.Empty);
+  rpc ResetPassword (ResetPasswordRequest) returns (google.protobuf.Empty);
+}
+
+/* ================= ENUMS ================= */
+
+enum VerificationType {
+  VERIFICATION_TYPE_UNSPECIFIED = 0;
+  VERIFICATION_TYPE_EMAIL = 1;
+  VERIFICATION_TYPE_PHONE = 2;
+}
+
+enum TwoFactorType {
+  TWO_FACTOR_TYPE_UNSPECIFIED = 0;
+  TWO_FACTOR_TYPE_TOTP = 1;      // Authenticator app (Time-based OTP)
+  TWO_FACTOR_TYPE_EMAIL_OTP = 2; // Email one-time code
+  TWO_FACTOR_TYPE_SMS_OTP = 3;   // SMS one-time code
+}
+
+enum TwoFactorDeliveryMethod {
+  TWO_FACTOR_DELIVERY_UNSPECIFIED = 0;
+  TWO_FACTOR_DELIVERY_AUTHENTICATOR = 1;
+  TWO_FACTOR_DELIVERY_EMAIL = 2;
+  TWO_FACTOR_DELIVERY_SMS = 3;
+}
+
+/* ================= AUTH & TOKENS ================= */
+
+message AuthTokens {
+  string session_id = 1;
+  string access_token = 2;
+  string refresh_token = 3;
+  google.protobuf.Timestamp access_token_expires_at = 4;
+  google.protobuf.Timestamp refresh_token_expires_at = 5;
+  string token_type = 6;  // "Bearer"
+}
+
+/* ================= LOGIN FLOW ================= */
+
+message LoginRequest {
+  string identifier = 1;  // email / phone / username
+  string password = 2;
+  optional string two_factor_code = 3;  // Optional for initial login
+  optional string two_factor_session_id = 4;  // For 2FA continuation
+}
+
+message LoginResponse {
+  oneof result {
+    AuthSuccess auth_success = 1;
+    TwoFactorRequired two_factor_required = 2;
+  }
+}
+
+message AuthSuccess {
+  AuthTokens tokens = 1;
+  UserInfo user = 2;
+}
+
+message TwoFactorRequired {
+  string message = 1;
+  string two_factor_session_id = 2;  // Temporary session for 2FA verification
+  TwoFactorType type = 3;
+  TwoFactorDeliveryMethod delivery_method = 4;
+  string masked_target = 5;  // "us***@ex***.com", "+1******7890"
+  google.protobuf.Timestamp expires_at = 6;
+  int32 code_length = 7;  // 6 for TOTP, 6 for OTPs
+  bool can_resend = 8;
+  google.protobuf.Timestamp resend_after = 9;
+}
+
+message Verify2FARequest {
+  string two_factor_session_id = 1;
+  string code = 2;
+  TwoFactorType type = 3;
+}
+
+/* ================= SIGNUP ================= */
+
+message SignupRequest {
+  string name = 1;
+  string email = 2;
+  string password = 3;
+  optional string phone = 4;
+  optional bool accept_terms = 5;
+  optional string referral_code = 6;
+}
+
+message SignupResponse {
+  string message = 1;
+  string user_id = 2;
+  string email = 3;
+  google.protobuf.Timestamp created_at = 4;
+  bool verification_required = 5;
+  VerificationType verification_type = 6;
+}
+
+/* ================= 2FA MANAGEMENT ================= */
+
+message Enable2FARequest {
+  TwoFactorType type = 1;
+  oneof delivery_target {
+    string email = 2;
+    string phone = 3;
+  }
+}
+
+message Enable2FAResponse {
+  string secret = 1;  // For TOTP - base32 secret
+  string qr_code_url = 2;  // For TOTP - QR code URL
+  string manual_entry_code = 3;  // For TOTP - manual entry code
+  TwoFactorType type = 4;
+  string delivery_target = 5;
+  google.protobuf.Timestamp expires_at = 6;
+}
+
+message Disable2FARequest {
+  string password = 1;  // Require password confirmation
+  optional string two_factor_code = 2;  // If 2FA is currently enabled
+}
+
+message Verify2FASetupRequest {
+  string code = 1;
+  TwoFactorType type = 2;
+}
+
+/* ================= USER & SESSION ================= */
+
+message UserInfo {
+  string user_id = 1;
+  string name = 2;
+  string email = 3;
+  optional string phone = 4;
+  string avatar_url = 5;
+  bool email_verified = 6;
+  bool phone_verified = 7;
+  bool two_factor_enabled = 8;
+  TwoFactorType two_factor_type = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  google.protobuf.Timestamp last_login_at = 12;
+}
+
+message SessionInfo {
+  UserInfo user = 1;
+  string session_id = 2;
+  string device_info = 3;
+  string ip_address = 4;
+  string user_agent = 5;
+  google.protobuf.Timestamp issued_at = 6;
+  google.protobuf.Timestamp expires_at = 7;
+  bool is_mfa_authenticated = 8;
+  repeated string permissions = 9;
+  map<string, string> metadata = 10;
+}
+
+/* ================= PASSWORD MANAGEMENT ================= */
+
+message ChangePasswordRequest {
+  string current_password = 1;
+  string new_password = 2;
+  optional string two_factor_code = 3;  // If 2FA is enabled
+}
+
+message ForgotPasswordRequest {
+  string email = 1;
+}
+
+message ResetPasswordRequest {
+  string token = 1;
+  string new_password = 2;
+}
+
+/* ================= VERIFICATION ================= */
+
+message VerifyAccountRequest {
+  string token = 1;
+  VerificationType type = 2;
+}
+
+message ResendVerificationRequest {
+  VerificationType type = 1;
+  oneof target {
+    string email = 2;
+    string phone = 3;
+  }
+}
+
+/* ================= TOKEN MANAGEMENT ================= */
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+/* ================= DEVICE MANAGEMENT ================= */
+
+message DeviceInfo {
+  string device_id = 1;
+  string name = 2;
+  string type = 3;  // "web", "ios", "android", "desktop"
+  string os = 4;
+  string browser = 5;
+  google.protobuf.Timestamp last_active = 6;
+  bool is_current = 7;
+}
+
+message GetDevicesResponse {
+  repeated DeviceInfo devices = 1;
+}
+
+message RevokeDeviceRequest {
+  string device_id = 1;
+}
+
+/* ================= SECURITY EVENTS ================= */
+
+message SecurityEvent {
+  string event_id = 1;
+  string type = 2;  // "login", "password_change", "2fa_enabled", etc.
+  string description = 3;
+  string ip_address = 4;
+  string user_agent = 5;
+  google.protobuf.Timestamp occurred_at = 6;
+  map<string, string> metadata = 7;
+}
+
+message GetSecurityEventsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  google.protobuf.Timestamp from_date = 3;
+  google.protobuf.Timestamp to_date = 4;
+}
+
+message GetSecurityEventsResponse {
+  repeated SecurityEvent events = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+/* ================= MESSAGES ================= */
+
+message GenericMessage {
+  string message = 1;
+  map<string, string> details = 2;
+}

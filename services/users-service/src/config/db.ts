@@ -5,7 +5,7 @@ import * as schema from "../utils/schema";
 import { config } from "./dotenv";
 
 const pool = new Pool({
-  connectionString: config.DATABASE_URL,
+  connectionString: config.USER_DATABASE_URL,
 });
 
 export const db = drizzle(pool, { schema });

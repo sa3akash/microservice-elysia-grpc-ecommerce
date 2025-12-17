@@ -31,7 +31,6 @@ export class GatewayError extends Error {
   }
 }
 
-
 export const errorHandler = ({
   code,
   error,
@@ -41,7 +40,6 @@ export const errorHandler = ({
   error: any;
   set: Context["set"];
 }) => {
-  
   // ---------- App Error ----------
   if (error instanceof GatewayError) {
     set.status = error.status;
@@ -50,12 +48,7 @@ export const errorHandler = ({
       message: error.message,
       code: error.code,
     };
-  }  
-  
-
-  
-  /* ---------------- GraphQL ---------------- */
-
+  }
 
   // ---------- Validation ----------
   if (code === "VALIDATION") {

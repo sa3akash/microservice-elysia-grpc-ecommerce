@@ -1,8 +1,9 @@
 import Elysia from "elysia";
-import { UserService } from "./service";
+import { UserService } from "./users.service";
 import { GatewayError } from "@/utils/customError";
-import { UserModel } from "./model";
+import { UserModel } from "./users.model";
 import { errorResponse } from "@/interfaces/errorResponse";
+import { CustomError } from "@/config/CommonError";
 
 export const users = new Elysia({ prefix: "/users" })
   .get(
@@ -13,7 +14,7 @@ export const users = new Elysia({ prefix: "/users" })
       if (!response) {
         throw new GatewayError("User not found", 404);
       }
-      return response;
+      return response as any;
     },
     {
       params: UserModel.getUserParams,
@@ -24,8 +25,8 @@ export const users = new Elysia({ prefix: "/users" })
       },
       response: {
         200: UserModel.UserResponse,
-        404: errorResponse,
-        500: errorResponse,
+        404: CustomError.errorResponse,
+        500: CustomError.errorResponse,
       },
     }
   )
@@ -33,7 +34,7 @@ export const users = new Elysia({ prefix: "/users" })
     "/create",
     async ({ body }) => {
       const response = await UserService.createUser(body);
-      return response;
+      return response as any;
     },
     {
       body: UserModel.signUpBody,
@@ -44,8 +45,8 @@ export const users = new Elysia({ prefix: "/users" })
       },
       response: {
         200: UserModel.UserResponse,
-        400: UserModel.signUpInvalid,
-        500: errorResponse,
+        400: CustomError.errorResponse,
+        500: CustomError.errorResponse,
       },
     }
   )
@@ -53,7 +54,7 @@ export const users = new Elysia({ prefix: "/users" })
     "/update/:id",
     async ({ params, body }) => {
       const response = await UserService.updateUser(params.id, body);
-      return response;
+      return response as any;
     },
     {
       params: UserModel.getUserParams,
@@ -65,9 +66,9 @@ export const users = new Elysia({ prefix: "/users" })
       },
       response: {
         200: UserModel.UserResponse,
-        400: UserModel.signUpInvalid,
-        404: errorResponse,
-        500: errorResponse,
+        400: CustomError.errorResponse,
+        404: CustomError.errorResponse,
+        500: CustomError.errorResponse,
       },
     }
   )
@@ -75,7 +76,7 @@ export const users = new Elysia({ prefix: "/users" })
     "/delete/:id",
     async ({ params }) => {
       const response = await UserService.deleteUser(params.id);
-      return response;
+      return response as any;
     },
     {
       params: UserModel.deleteUserParams,
@@ -86,9 +87,9 @@ export const users = new Elysia({ prefix: "/users" })
       },
       response: {
         200: UserModel.UserResponse,
-        400: UserModel.signUpInvalid,
-        404: errorResponse,
-        500: errorResponse,
+        400: CustomError.errorResponse,
+        404: CustomError.errorResponse,
+        500: CustomError.errorResponse,
       },
     }
   );

@@ -87,14 +87,10 @@ export namespace UserModel {
   export type deleteUserResponseType = typeof deleteUserParams.static;
   export type getUsersResponseType = typeof getUsersParams.static;
   export type getUserResponseType = typeof getUserParams.static;
-  export type signInInvalidType = typeof signInInvalid.static;
-  export type signUpInvalidType = typeof signUpInvalid.static;
 
   export type UserResponseType = typeof UserResponse.static;
 
-  export const signInInvalid = t.Literal("Invalid username or password");
-  export type signInInvalid = typeof signInInvalid.static;
 
-  export const signUpInvalid = t.Literal("Invalid username or password");
-  export type signUpInvalid = typeof signInInvalid.static;
+
+
 }

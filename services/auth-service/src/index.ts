@@ -1,26 +1,24 @@
 import {
-  UserServiceService,
-  applyInterceptors,
-  AuthInterceptor,
-  ErrorInterceptor,
+  authInterceptor,
+  AuthServiceService,
+  globalErrorInterceptor,
+  loggingInterceptor,
+  wrapGrpcService,
 } from "@ecom/common";
 
 import { Server, ServerCredentials } from "@grpc/grpc-js";
-import { config } from "./config/dotenv";
-import { UsersService } from "./services/auth.services";
-import { logger } from "./utils/logger";
-import { closeDb } from "./config/db";
+import { config } from "@/config/dotenv";
+import { logger } from "@/utils/logger";
+import { closeDb, connectDb } from "@/config/db";
+import { AuthServiceController } from "@/services/auth.controller";
 
-const server = new Server();
-
-const interceptors = [
-  new ErrorInterceptor(),
-  new AuthInterceptor(["createUser", "getUser"]),
-];
+const server = new Server({
+  interceptors: [globalErrorInterceptor, authInterceptor, loggingInterceptor],
+});
 
 server.addService(
-  UserServiceService,
-  applyInterceptors(new UsersService(), interceptors)
+  AuthServiceService,
+  wrapGrpcService(new AuthServiceController())
 );
 
 server.bindAsync(
@@ -32,6 +30,7 @@ server.bindAsync(
       process.exit(1);
     }
     logger.info(`Users Service running on port ${port}`);
+    connectDb()
   }
 );
 
@@ -56,12 +55,10 @@ process.on("exit", () => {
 
 process.on("uncaughtException", (err) => {
   logger.error("Uncaught Exception", { error: err });
-  process.exit(1);
 });
 
 process.on("unhandledRejection", (reason) => {
   logger.error("Unhandled Rejection", { reason });
-  process.exit(1);
 });
 
 process.on("uncaughtExceptionMonitor", (err) => {

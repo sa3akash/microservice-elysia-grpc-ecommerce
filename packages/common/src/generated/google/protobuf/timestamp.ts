@@ -7,8 +7,6 @@
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 
-export const protobufPackage = "google.protobuf";
-
 /**
  * A Timestamp represents a point in time independent of any time zone or local
  * calendar, encoded as a count of seconds and fractions of seconds at
@@ -106,9 +104,7 @@ export interface Timestamp {
    * be between -315576000000 and 315576000000 inclusive (which corresponds to
    * 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z).
    */
-  seconds?:
-    | number
-    | undefined;
+  seconds: number;
   /**
    * Non-negative fractions of a second at nanosecond resolution. This field is
    * the nanosecond portion of the duration, not an alternative to seconds.
@@ -116,7 +112,7 @@ export interface Timestamp {
    * values that count forward in time. Must be between 0 and 999,999,999
    * inclusive.
    */
-  nanos?: number | undefined;
+  nanos: number;
 }
 
 function createBaseTimestamp(): Timestamp {
@@ -125,10 +121,10 @@ function createBaseTimestamp(): Timestamp {
 
 export const Timestamp: MessageFns<Timestamp> = {
   encode(message: Timestamp, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.seconds !== undefined && message.seconds !== 0) {
+    if (message.seconds !== 0) {
       writer.uint32(8).int64(message.seconds);
     }
-    if (message.nanos !== undefined && message.nanos !== 0) {
+    if (message.nanos !== 0) {
       writer.uint32(16).int32(message.nanos);
     }
     return writer;
@@ -175,19 +171,19 @@ export const Timestamp: MessageFns<Timestamp> = {
 
   toJSON(message: Timestamp): unknown {
     const obj: any = {};
-    if (message.seconds !== undefined && message.seconds !== 0) {
+    if (message.seconds !== 0) {
       obj.seconds = Math.round(message.seconds);
     }
-    if (message.nanos !== undefined && message.nanos !== 0) {
+    if (message.nanos !== 0) {
       obj.nanos = Math.round(message.nanos);
     }
     return obj;
   },
 
-  create(base?: DeepPartial<Timestamp>): Timestamp {
-    return Timestamp.fromPartial(base ?? {});
+  create<I extends Exact<DeepPartial<Timestamp>, I>>(base?: I): Timestamp {
+    return Timestamp.fromPartial(base ?? ({} as any));
   },
-  fromPartial(object: DeepPartial<Timestamp>): Timestamp {
+  fromPartial<I extends Exact<DeepPartial<Timestamp>, I>>(object: I): Timestamp {
     const message = createBaseTimestamp();
     message.seconds = object.seconds ?? 0;
     message.nanos = object.nanos ?? 0;
@@ -197,11 +193,15 @@ export const Timestamp: MessageFns<Timestamp> = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
+type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function longToNumber(int64: { toString(): string }): number {
   const num = globalThis.Number(int64.toString());
@@ -218,11 +218,11 @@ function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export interface MessageFns<T> {
+interface MessageFns<T> {
   encode(message: T, writer?: BinaryWriter): BinaryWriter;
   decode(input: BinaryReader | Uint8Array, length?: number): T;
   fromJSON(object: any): T;
   toJSON(message: T): unknown;
-  create(base?: DeepPartial<T>): T;
-  fromPartial(object: DeepPartial<T>): T;
+  create<I extends Exact<DeepPartial<T>, I>>(base?: I): T;
+  fromPartial<I extends Exact<DeepPartial<T>, I>>(object: I): T;
 }
