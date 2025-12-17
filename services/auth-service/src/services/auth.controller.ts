@@ -48,7 +48,7 @@ export class AuthServiceController implements AuthServiceServer {
   ) => {
     const data = validate<LoginRequest>(loginSchema, call.request);
     const ipAddress = call.metadata.get("ip")?.[0] || ("" as string);
-    const userAgent = call.metadata.get("user-agent")?.[0] || ("" as string);
+    const userAgent = call.metadata.get("agent")?.[0] || ("" as string);
 
     const loginData = await AuthService.login(
       data,

@@ -17,7 +17,7 @@ export abstract class SessionRepository {
       ipAddress,
       city: ipData.city,
       country: ipData.country,
-      deviceInfo: JSON.stringify(userAgentData),
+      deviceInfo: userAgentData,
       userAgent,
       latitude: `${ipData.latitude}`,
       longitude: `${ipData.longitude}`,

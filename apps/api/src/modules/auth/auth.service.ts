@@ -21,8 +21,8 @@ export abstract class AuthService {
 
   static async login(body: LoginRequest, ipAddress: string, userAgent: string) {
     const metadata = new Metadata();
-    metadata.add("ip", ipAddress);
-    metadata.add("user-agent", userAgent);
+    metadata.set("ip", ipAddress);
+    metadata.set("agent", userAgent);
 
     return new Promise<LoginResponse>((resolve, reject) => {
       authClient.login(body, metadata, (err, res) => {
