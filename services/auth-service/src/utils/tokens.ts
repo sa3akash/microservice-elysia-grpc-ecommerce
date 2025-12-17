@@ -5,12 +5,14 @@ import jwt from "jsonwebtoken";
 
 export type RefreshTokenData = {
   authId: string;
-  deviceId: string;
+  ipAddress: string;
+  userAgent: string;
 };
 
 export type AccessTokenData = {
   authId: string;
   sessionId: string;
+  sessionTokenHash: string;
 };
 
 export const generateAccessToken = (user: AccessTokenData) => {

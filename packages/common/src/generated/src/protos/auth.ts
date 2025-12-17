@@ -158,11 +158,7 @@ export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
   accessTokenExpiresAt: Date | undefined;
-  refreshTokenExpiresAt:
-    | Date
-    | undefined;
-  /** "Bearer" */
-  tokenType: string;
+  refreshTokenExpiresAt: Date | undefined;
 }
 
 export interface LoginRequest {
@@ -223,9 +219,6 @@ export interface SignupResponse {
   message: string;
   userId: string;
   email: string;
-  createdAt: Date | undefined;
-  verificationRequired: boolean;
-  verificationType: VerificationType;
 }
 
 export interface Enable2FARequest {
@@ -265,12 +258,8 @@ export interface UserInfo {
   phone?: string | undefined;
   avatarUrl: string;
   emailVerified: boolean;
-  phoneVerified: boolean;
-  twoFactorEnabled: boolean;
-  twoFactorType: TwoFactorType;
   createdAt: Date | undefined;
   updatedAt: Date | undefined;
-  lastLoginAt: Date | undefined;
 }
 
 export interface SessionInfo {
@@ -388,7 +377,6 @@ function createBaseAuthTokens(): AuthTokens {
     refreshToken: "",
     accessTokenExpiresAt: undefined,
     refreshTokenExpiresAt: undefined,
-    tokenType: "",
   };
 }
 
@@ -408,9 +396,6 @@ export const AuthTokens: MessageFns<AuthTokens> = {
     }
     if (message.refreshTokenExpiresAt !== undefined) {
       Timestamp.encode(toTimestamp(message.refreshTokenExpiresAt), writer.uint32(42).fork()).join();
-    }
-    if (message.tokenType !== "") {
-      writer.uint32(50).string(message.tokenType);
     }
     return writer;
   },
@@ -462,14 +447,6 @@ export const AuthTokens: MessageFns<AuthTokens> = {
           message.refreshTokenExpiresAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
-        case 6: {
-          if (tag !== 50) {
-            break;
-          }
-
-          message.tokenType = reader.string();
-          continue;
-        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -490,7 +467,6 @@ export const AuthTokens: MessageFns<AuthTokens> = {
       refreshTokenExpiresAt: isSet(object.refreshTokenExpiresAt)
         ? fromJsonTimestamp(object.refreshTokenExpiresAt)
         : undefined,
-      tokenType: isSet(object.tokenType) ? globalThis.String(object.tokenType) : "",
     };
   },
 
@@ -511,9 +487,6 @@ export const AuthTokens: MessageFns<AuthTokens> = {
     if (message.refreshTokenExpiresAt !== undefined) {
       obj.refreshTokenExpiresAt = message.refreshTokenExpiresAt.toISOString();
     }
-    if (message.tokenType !== "") {
-      obj.tokenType = message.tokenType;
-    }
     return obj;
   },
 
@@ -527,7 +500,6 @@ export const AuthTokens: MessageFns<AuthTokens> = {
     message.refreshToken = object.refreshToken ?? "";
     message.accessTokenExpiresAt = object.accessTokenExpiresAt ?? undefined;
     message.refreshTokenExpiresAt = object.refreshTokenExpiresAt ?? undefined;
-    message.tokenType = object.tokenType ?? "";
     return message;
   },
 };
@@ -1231,7 +1203,7 @@ export const SignupRequest: MessageFns<SignupRequest> = {
 };
 
 function createBaseSignupResponse(): SignupResponse {
-  return { message: "", userId: "", email: "", createdAt: undefined, verificationRequired: false, verificationType: 0 };
+  return { message: "", userId: "", email: "" };
 }
 
 export const SignupResponse: MessageFns<SignupResponse> = {
@@ -1244,15 +1216,6 @@ export const SignupResponse: MessageFns<SignupResponse> = {
     }
     if (message.email !== "") {
       writer.uint32(26).string(message.email);
-    }
-    if (message.createdAt !== undefined) {
-      Timestamp.encode(toTimestamp(message.createdAt), writer.uint32(34).fork()).join();
-    }
-    if (message.verificationRequired !== false) {
-      writer.uint32(40).bool(message.verificationRequired);
-    }
-    if (message.verificationType !== 0) {
-      writer.uint32(48).int32(message.verificationType);
     }
     return writer;
   },
@@ -1288,30 +1251,6 @@ export const SignupResponse: MessageFns<SignupResponse> = {
           message.email = reader.string();
           continue;
         }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
-          message.createdAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
-          continue;
-        }
-        case 5: {
-          if (tag !== 40) {
-            break;
-          }
-
-          message.verificationRequired = reader.bool();
-          continue;
-        }
-        case 6: {
-          if (tag !== 48) {
-            break;
-          }
-
-          message.verificationType = reader.int32() as any;
-          continue;
-        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1326,11 +1265,6 @@ export const SignupResponse: MessageFns<SignupResponse> = {
       message: isSet(object.message) ? globalThis.String(object.message) : "",
       userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
-      createdAt: isSet(object.createdAt) ? fromJsonTimestamp(object.createdAt) : undefined,
-      verificationRequired: isSet(object.verificationRequired)
-        ? globalThis.Boolean(object.verificationRequired)
-        : false,
-      verificationType: isSet(object.verificationType) ? verificationTypeFromJSON(object.verificationType) : 0,
     };
   },
 
@@ -1345,15 +1279,6 @@ export const SignupResponse: MessageFns<SignupResponse> = {
     if (message.email !== "") {
       obj.email = message.email;
     }
-    if (message.createdAt !== undefined) {
-      obj.createdAt = message.createdAt.toISOString();
-    }
-    if (message.verificationRequired !== false) {
-      obj.verificationRequired = message.verificationRequired;
-    }
-    if (message.verificationType !== 0) {
-      obj.verificationType = verificationTypeToJSON(message.verificationType);
-    }
     return obj;
   },
 
@@ -1365,9 +1290,6 @@ export const SignupResponse: MessageFns<SignupResponse> = {
     message.message = object.message ?? "";
     message.userId = object.userId ?? "";
     message.email = object.email ?? "";
-    message.createdAt = object.createdAt ?? undefined;
-    message.verificationRequired = object.verificationRequired ?? false;
-    message.verificationType = object.verificationType ?? 0;
     return message;
   },
 };
@@ -1764,12 +1686,8 @@ function createBaseUserInfo(): UserInfo {
     phone: undefined,
     avatarUrl: "",
     emailVerified: false,
-    phoneVerified: false,
-    twoFactorEnabled: false,
-    twoFactorType: 0,
     createdAt: undefined,
     updatedAt: undefined,
-    lastLoginAt: undefined,
   };
 }
 
@@ -1793,23 +1711,11 @@ export const UserInfo: MessageFns<UserInfo> = {
     if (message.emailVerified !== false) {
       writer.uint32(48).bool(message.emailVerified);
     }
-    if (message.phoneVerified !== false) {
-      writer.uint32(56).bool(message.phoneVerified);
-    }
-    if (message.twoFactorEnabled !== false) {
-      writer.uint32(64).bool(message.twoFactorEnabled);
-    }
-    if (message.twoFactorType !== 0) {
-      writer.uint32(72).int32(message.twoFactorType);
-    }
     if (message.createdAt !== undefined) {
       Timestamp.encode(toTimestamp(message.createdAt), writer.uint32(82).fork()).join();
     }
     if (message.updatedAt !== undefined) {
       Timestamp.encode(toTimestamp(message.updatedAt), writer.uint32(90).fork()).join();
-    }
-    if (message.lastLoginAt !== undefined) {
-      Timestamp.encode(toTimestamp(message.lastLoginAt), writer.uint32(98).fork()).join();
     }
     return writer;
   },
@@ -1869,30 +1775,6 @@ export const UserInfo: MessageFns<UserInfo> = {
           message.emailVerified = reader.bool();
           continue;
         }
-        case 7: {
-          if (tag !== 56) {
-            break;
-          }
-
-          message.phoneVerified = reader.bool();
-          continue;
-        }
-        case 8: {
-          if (tag !== 64) {
-            break;
-          }
-
-          message.twoFactorEnabled = reader.bool();
-          continue;
-        }
-        case 9: {
-          if (tag !== 72) {
-            break;
-          }
-
-          message.twoFactorType = reader.int32() as any;
-          continue;
-        }
         case 10: {
           if (tag !== 82) {
             break;
@@ -1907,14 +1789,6 @@ export const UserInfo: MessageFns<UserInfo> = {
           }
 
           message.updatedAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
-          continue;
-        }
-        case 12: {
-          if (tag !== 98) {
-            break;
-          }
-
-          message.lastLoginAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -1934,12 +1808,8 @@ export const UserInfo: MessageFns<UserInfo> = {
       phone: isSet(object.phone) ? globalThis.String(object.phone) : undefined,
       avatarUrl: isSet(object.avatarUrl) ? globalThis.String(object.avatarUrl) : "",
       emailVerified: isSet(object.emailVerified) ? globalThis.Boolean(object.emailVerified) : false,
-      phoneVerified: isSet(object.phoneVerified) ? globalThis.Boolean(object.phoneVerified) : false,
-      twoFactorEnabled: isSet(object.twoFactorEnabled) ? globalThis.Boolean(object.twoFactorEnabled) : false,
-      twoFactorType: isSet(object.twoFactorType) ? twoFactorTypeFromJSON(object.twoFactorType) : 0,
       createdAt: isSet(object.createdAt) ? fromJsonTimestamp(object.createdAt) : undefined,
       updatedAt: isSet(object.updatedAt) ? fromJsonTimestamp(object.updatedAt) : undefined,
-      lastLoginAt: isSet(object.lastLoginAt) ? fromJsonTimestamp(object.lastLoginAt) : undefined,
     };
   },
 
@@ -1963,23 +1833,11 @@ export const UserInfo: MessageFns<UserInfo> = {
     if (message.emailVerified !== false) {
       obj.emailVerified = message.emailVerified;
     }
-    if (message.phoneVerified !== false) {
-      obj.phoneVerified = message.phoneVerified;
-    }
-    if (message.twoFactorEnabled !== false) {
-      obj.twoFactorEnabled = message.twoFactorEnabled;
-    }
-    if (message.twoFactorType !== 0) {
-      obj.twoFactorType = twoFactorTypeToJSON(message.twoFactorType);
-    }
     if (message.createdAt !== undefined) {
       obj.createdAt = message.createdAt.toISOString();
     }
     if (message.updatedAt !== undefined) {
       obj.updatedAt = message.updatedAt.toISOString();
-    }
-    if (message.lastLoginAt !== undefined) {
-      obj.lastLoginAt = message.lastLoginAt.toISOString();
     }
     return obj;
   },
@@ -1995,12 +1853,8 @@ export const UserInfo: MessageFns<UserInfo> = {
     message.phone = object.phone ?? undefined;
     message.avatarUrl = object.avatarUrl ?? "";
     message.emailVerified = object.emailVerified ?? false;
-    message.phoneVerified = object.phoneVerified ?? false;
-    message.twoFactorEnabled = object.twoFactorEnabled ?? false;
-    message.twoFactorType = object.twoFactorType ?? 0;
     message.createdAt = object.createdAt ?? undefined;
     message.updatedAt = object.updatedAt ?? undefined;
-    message.lastLoginAt = object.lastLoginAt ?? undefined;
     return message;
   },
 };

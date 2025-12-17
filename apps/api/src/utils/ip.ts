@@ -1,6 +1,11 @@
 import type { Server } from "bun";
 
 export const getClientIp = (request: Request, server?: Server<any> | null) => {
+
+  if(process.env['NODE_ENV'] !== 'production'){
+    return '103.161.106.102';
+  }
+
   // if cloudefile use
   const ip = request.headers.get("CF-Connecting-IP");
   if (ip) {

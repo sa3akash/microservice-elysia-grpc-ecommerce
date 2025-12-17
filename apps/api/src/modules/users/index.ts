@@ -2,7 +2,6 @@ import Elysia from "elysia";
 import { UserService } from "./users.service";
 import { GatewayError } from "@/utils/customError";
 import { UserModel } from "./users.model";
-import { errorResponse } from "@/interfaces/errorResponse";
 import { CustomError } from "@/config/CommonError";
 
 export const users = new Elysia({ prefix: "/users" })

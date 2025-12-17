@@ -1,4 +1,3 @@
-import { AuthRepository } from "@/repository/auth.repository";
 import { loginSchema, signupSchema } from "@/utils/auth.validation";
 import {
   AppError,
@@ -15,9 +14,13 @@ import {
   type AuthTokens,
   type SignupRequest,
   Empty,
-  VerificationType,
+  LoginResponse,
+  Disable2FARequest,
+  Enable2FARequest,
+  Enable2FAResponse,
+  Verify2FARequest,
+  Verify2FASetupRequest,
 } from "@ecom/common";
-import bcrypt from "bcryptjs";
 
 import { status, type handleUnaryCall } from "@grpc/grpc-js";
 import { AuthService } from "./auth.services";
@@ -30,50 +33,30 @@ export class AuthServiceController implements AuthServiceServer {
     callback
   ) => {
     const data = validate<SignupRequest>(signupSchema, call.request);
-
     const user = await AuthService.SignUp(data);
 
     callback(null, {
       message: "User created successfully",
-      createdAt: user?.createdAt,
       email: user?.email!,
       userId: user?.id!,
-      verificationRequired: user?.emailVerified ?? false,
-      verificationType: VerificationType.VERIFICATION_TYPE_EMAIL,
     });
   };
 
-  login: handleUnaryCall<LoginRequest, AuthTokens> = async (call, callback) => {
+  login: handleUnaryCall<LoginRequest, LoginResponse> = async (
+    call,
+    callback
+  ) => {
     const data = validate<LoginRequest>(loginSchema, call.request);
+    const ipAddress = call.metadata.get("ip")?.[0] || ("" as string);
+    const userAgent = call.metadata.get("user-agent")?.[0] || ("" as string);
 
-    const user = await AuthRepository.getUserByIdenfire(data.identifier);
+    const loginData = await AuthService.login(
+      data,
+      `${ipAddress}`,
+      `${userAgent}`
+    );
 
-    if (!user || !bcrypt.compareSync(data.password, user.password)) {
-      throw new AppError(status.NOT_FOUND, "Invalid credentials.");
-    }
-
-    if (!user.isActive) {
-      // todo: send email for send resone to inactivate account
-      throw new AppError(status.UNAUTHENTICATED, "User is not active");
-    }
-
-    if (!user.emailVerified) {
-      // todo: send verification email
-      throw new AppError(
-        status.UNAUTHENTICATED,
-        "User not verified. Check your email for verification link"
-      );
-    }
-
-    const authTokens: AuthTokens = {
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      refreshToken: "",
-      sessionId: "",
-    };
-
-    // const tokens = await generateTokens(user.id);
-
-    callback(null, authTokens);
+    callback(null, loginData);
   };
 
   logout: handleUnaryCall<any, Empty> = async (call, callback) => {
@@ -82,9 +65,11 @@ export class AuthServiceController implements AuthServiceServer {
 
   refreshToken: handleUnaryCall<any, AuthTokens> = async (call, callback) => {
     callback(null, {
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       refreshToken: "",
       sessionId: "",
+      accessToken: "",
+      accessTokenExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      refreshTokenExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
   };
   changePassword: handleUnaryCall<ChangePasswordRequest, Empty> = async (
@@ -107,13 +92,25 @@ export class AuthServiceController implements AuthServiceServer {
   };
   getSession: handleUnaryCall<Empty, SessionInfo> = async (call, callback) => {
     callback(null, {
-      email: "email",
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      emailVerified: true,
       issuedAt: new Date(Date.now()),
-      phone: "",
-      phoneVerified: true,
-      userId: "12364",
+      sessionId: "",
+      deviceInfo: "",
+
+      ipAddress: "",
+      userAgent: "",
+      isMfaAuthenticated: false,
+      metadata: {},
+      permissions: [],
+      user: {
+        avatarUrl: "",
+        createdAt: new Date(Date.now()),
+        email: "",
+        emailVerified: false,
+        name: "",
+        updatedAt: new Date(Date.now()),
+        userId: "",
+      },
     });
   };
   resendVerification: handleUnaryCall<ResendVerificationRequest, Empty> =
@@ -127,4 +124,19 @@ export class AuthServiceController implements AuthServiceServer {
   ) => {
     callback(null, {});
   };
+
+  disable2Fa: handleUnaryCall<Disable2FARequest, Empty> = async (call, callback) => {
+    callback(null, {});
+  };
+
+  enable2Fa: handleUnaryCall<Enable2FARequest, any> = async (call, callback) => {
+    callback(null, {});
+  };
+  verify2Fa: handleUnaryCall<Verify2FARequest, any> = async (call, callback) => {
+    callback(null, {});
+  };
+  verify2FaSetup: handleUnaryCall<Verify2FASetupRequest, Empty> = async (call, callback) => {
+    callback(null, {});
+  };
+
 }

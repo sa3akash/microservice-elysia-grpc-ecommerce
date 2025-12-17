@@ -65,7 +65,6 @@ message AuthTokens {
   string refresh_token = 3;
   google.protobuf.Timestamp access_token_expires_at = 4;
   google.protobuf.Timestamp refresh_token_expires_at = 5;
-  string token_type = 6;  // "Bearer"
 }
 
 /* ================= LOGIN FLOW ================= */
@@ -122,9 +121,6 @@ message SignupResponse {
   string message = 1;
   string user_id = 2;
   string email = 3;
-  google.protobuf.Timestamp created_at = 4;
-  bool verification_required = 5;
-  VerificationType verification_type = 6;
 }
 
 /* ================= 2FA MANAGEMENT ================= */
@@ -165,12 +161,8 @@ message UserInfo {
   optional string phone = 4;
   string avatar_url = 5;
   bool email_verified = 6;
-  bool phone_verified = 7;
-  bool two_factor_enabled = 8;
-  TwoFactorType two_factor_type = 9;
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
-  google.protobuf.Timestamp last_login_at = 12;
 }
 
 message SessionInfo {

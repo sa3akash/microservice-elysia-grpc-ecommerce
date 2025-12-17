@@ -7,9 +7,12 @@ import { logger } from "./utils/logger";
 import { apolloModules } from "./modules/apolloModule";
 import { openapiMiddleware } from "./utils/openapi.config";
 
+import { GlobalContext } from "./utils/context";
+
 const app = new Elysia()
   .error({ GatewayError })
   .onError(errorHandler)
+  .use(GlobalContext)
   .use([cors(), openapiMiddleware, restModules, apolloModules])
   .get("/", ({ redirect }) => {
     return redirect("/openapi");

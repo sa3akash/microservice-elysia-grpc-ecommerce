@@ -3,14 +3,11 @@ import apollo from "@elysiajs/apollo";
 import { customGraphqlError } from "@/utils/customGraphqlError";
 import { userTypeDefs } from "./users/gql/typeDefs";
 import { userResolvers } from "./users/gql/resolvers";
-import { getClientIp } from "@/utils/ip";
+
+import { GlobalContext } from "@/utils/context";
 
 export const apolloModules = new Elysia()
-  .derive(({ request, server }) => {
-    return {
-      ip: getClientIp(request, server),
-    };
-  })
+  .use(GlobalContext)
   .use([
     apollo({
       typeDefs: [userTypeDefs],
