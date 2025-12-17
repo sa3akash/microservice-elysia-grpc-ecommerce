@@ -1,18 +1,15 @@
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
-import { restModules } from "./modules/restModule";
-import { config } from "./config/dotenv";
-import { errorHandler, GatewayError } from "./utils/customError";
-import { logger } from "./utils/logger";
-import { apolloModules } from "./modules/apolloModule";
-import { openapiMiddleware } from "./utils/openapi.config";
-
-import { GlobalContext } from "./utils/context";
+import { restModules } from "@/modules/restModule";
+import { config } from "@/config/dotenv";
+import { errorHandler, GatewayError } from "@/utils/customError";
+import { logger } from "@/utils/logger";
+import { apolloModules } from "@/modules/apolloModule";
+import { openapiMiddleware } from "@/utils/openapi.config";
 
 const app = new Elysia()
   .error({ GatewayError })
   .onError(errorHandler)
-  .use(GlobalContext)
   .use([cors(), openapiMiddleware, restModules, apolloModules])
   .get("/", ({ redirect }) => {
     return redirect("/openapi");

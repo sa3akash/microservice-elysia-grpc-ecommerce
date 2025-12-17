@@ -1,22 +1,25 @@
 import Elysia from "elysia";
 import apollo from "@elysiajs/apollo";
 import { customGraphqlError } from "@/utils/customGraphqlError";
-import { userTypeDefs } from "./users/gql/typeDefs";
-import { userResolvers } from "./users/gql/resolvers";
 
 import { GlobalContext } from "@/utils/context";
+import { authResolvers } from "@/modules/auth/gql/resolvers";
+import { authTypeDefs } from "@/modules/auth/gql/typeDefs";
 
 export const apolloModules = new Elysia()
   .use(GlobalContext)
   .use([
     apollo({
-      typeDefs: [userTypeDefs],
+      typeDefs: [authTypeDefs],
       resolvers: {
+        // ...authResolvers,
         Query: {
-          ...userResolvers.Query,
+          // ...userResolvers.Query,
+          ...authResolvers.Query,
         },
         Mutation: {
-          ...userResolvers.Mutation,
+          // ...userResolvers.Mutation,
+          ...authResolvers.Mutation,
         },
       },
       formatError(formattedError, error: any) {
@@ -27,15 +30,16 @@ export const apolloModules = new Elysia()
         };
       },
 
-      context: async ({ request, ip }) => {
-        const token = request.headers.get("Authorization");
-        const origin = request.headers.get('origin')
-        if(origin !== 'http://localhost:3000'){
-          throw new Error('Unauthorized')
-        }
+      context: async ({ request, ip, cookie }) => {
+        const userAgent = request.headers.get("user-agent");
+        // const origin = request.headers.get('origin')
+        //  if(origin !== 'http://localhost:3000'){
+        //   throw new Error('Unauthorized')
+        //  }
         return {
-          token,
+          userAgent,
           ip,
+          cookie,
         };
       },
     }),

@@ -78,17 +78,18 @@ export abstract class AuthService {
 
     // todo: send login email to user
 
-    const accessToken = generateAccessToken({
-      authId: user.id,
-      sessionId: session?.id!,
-      sessionTokenHash: session?.sessionTokenHash!,
-    });
-
-    const refreshToken = generateRefreshToken({
-      authId: user.id,
-      ipAddress: ipAddress,
-      userAgent: userAgent,
-    });
+    const [accessToken, refreshToken] = await Promise.all([
+      generateAccessToken({
+        authId: user.id,
+        sessionId: session?.id!,
+        sessionTokenHash: session?.sessionTokenHash!,
+      }),
+      generateRefreshToken({
+        authId: user.id,
+        ipAddress: ipAddress,
+        userAgent: userAgent,
+      }),
+    ]);
 
     const authTokens: AuthTokens = {
       accessToken: accessToken,

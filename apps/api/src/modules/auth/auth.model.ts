@@ -66,11 +66,6 @@ export namespace AuthModel {
     updatedAt: t.Union([t.String(), t.Date()]),
   });
 
-  export const authSuccess = t.Object({
-    tokens: t.Optional(authTokens),
-    user: t.Optional(user),
-  });
-
   export const twoFactorRequired = t.Object({
     message: t.String(),
     twoFactorSessionId: t.String(),
@@ -84,11 +79,12 @@ export namespace AuthModel {
   });
 
   export const loginResponse = t.Object({
-    authSuccess: t.Optional(authSuccess),
+    user: t.Optional(user),
     twoFactorRequired: t.Optional(twoFactorRequired),
   });
 
   export type SignUpBody = typeof signUpBody.static;
+  export type SignInBody = typeof signinBody.static;
   export type TypeLoginResponse = typeof loginResponse.static;
 
 }
