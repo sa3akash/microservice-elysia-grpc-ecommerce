@@ -7,7 +7,7 @@ import { logger } from "@/utils/logger";
 import { apolloModules } from "@/modules/apolloModule";
 import { openapiMiddleware } from "@/utils/openapi.config";
 
-const app = new Elysia()
+export const app = new Elysia()
   .error({ GatewayError })
   .onError(errorHandler)
   .use([cors(), openapiMiddleware, restModules, apolloModules])
@@ -20,12 +20,14 @@ const app = new Elysia()
       timestamp: new Date().toISOString(),
       pid: process.pid,
     };
-  })
-  .listen(config.GATEWAY_PORT);
+  });
 
-logger.info(
-  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
-);
+if (import.meta.main) {
+  app.listen(config.GATEWAY_PORT);
+  logger.info(
+    `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
+  );
+}
 
 process.on("SIGINT", () => {
   logger.warn("\nShutting down gracefully...");

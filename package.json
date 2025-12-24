@@ -4,8 +4,11 @@
   "private": true,
   "scripts": {
     "build": "bun --filter '*' build",
-    "generate": "bunx protoc --ts_proto_out=./packages/common/src/interfaces/ ./protos/*.proto --ts_proto_opt=grpcJs=true",
-    "start": "bun index.ts"
+    "generate": "bun --filter './packages/common/' generate",
+    "start": "bun index.ts",
+    "test": "bun --filter '*' test",
+    "test:coverage": "bun --filter '*' test --coverage",
+    "test:e2e": "bun --filter '*' run test:e2e"
   },
   "workspaces": [
     "packages/*",

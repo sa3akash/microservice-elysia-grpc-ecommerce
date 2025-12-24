@@ -2,7 +2,9 @@
   "name": "@ecom/api",
   "version": "1.0.50",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "test:e2e": "bun run test:e2e",
     "build": "rm -rf dist && tsc --project tsconfig.json && tsc-alias -p tsconfig.json --resolve-full-paths",
     "start": "bun dist/index.js",
     "dev": "bun run --watch src/index.ts"
@@ -22,3 +24,4 @@
   },
   "module": "src/index.js"
 }
+

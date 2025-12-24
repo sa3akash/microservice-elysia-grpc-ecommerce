@@ -3,6 +3,7 @@ import { t } from "elysia";
 import { AuthModel } from "../auth.model";
 import { AuthService } from "../auth.service";
 
+
 export const authResolvers = {
   Query: {
     user: async (_: any, { id: _id }: { id: string }) => {
